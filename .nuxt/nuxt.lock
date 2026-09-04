@@ -1,0 +1,9 @@
+{
+  "pid": 28208,
+  "startedAt": 1788518175732,
+  "command": "dev",
+  "cwd": "C:/Users/Kawinpat/Documents/Codex/2026-09-04/new-chat",
+  "port": 3100,
+  "hostname": "127.0.0.1",
+  "url": "http://127.0.0.1:3100"
+}

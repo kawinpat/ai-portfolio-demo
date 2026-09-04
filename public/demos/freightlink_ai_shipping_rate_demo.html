@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FreightLink AI — Shipping Rate Agent Demo</title>
+<style>
+  :root{
+    --bg:#071522;
+    --bg2:#0b2236;
+    --panel:#0d2033;
+    --panel2:#122b43;
+    --ink:#18283a;
+    --muted:#6f7f90;
+    --line:#dfe7ee;
+    --soft:#f4f7f9;
+    --white:#ffffff;
+    --green:#06c755;
+    --green-dark:#00a947;
+    --cyan:#26c6b5;
+    --blue:#1f62a5;
+    --red:#e33a47;
+    --red-dark:#be2531;
+    --orange:#f0a53b;
+    --gold:#d5a84c;
+    --shadow:0 28px 80px rgba(0,0,0,.34);
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    min-width:1180px;
+    overflow:hidden;
+    color:#eef5fb;
+    font-family:"Noto Sans Thai","Leelawadee UI",Tahoma,Arial,sans-serif;
+    background:
+      radial-gradient(circle at 10% 8%,rgba(31,98,165,.42),transparent 30%),
+      radial-gradient(circle at 88% 92%,rgba(38,198,181,.24),transparent 34%),
+      linear-gradient(135deg,var(--bg),#081a2a 52%,#071521);
+  }
+
+  button,input,select{font:inherit}
+  button{cursor:pointer}
+
+  .app-shell{height:100%;display:flex;flex-direction:column}
+
+  .topbar{
+    height:78px;
+    flex:0 0 78px;
+    padding:13px 22px;
+    display:flex;
+    align-items:center;
+    gap:18px;
+    border-bottom:1px solid rgba(255,255,255,.08);
+    background:rgba(4,16,28,.72);
+    backdrop-filter:blur(14px);
+  }
+  .brand{display:flex;align-items:center;gap:12px;min-width:330px}
+  .brand-mark{
+    width:46px;height:46px;border-radius:15px;
+    display:grid;place-items:center;
+    background:linear-gradient(145deg,var(--cyan),var(--blue));
+    box-shadow:0 10px 28px rgba(38,198,181,.28);
+  }
+  .brand-mark svg{width:27px;height:27px}
+  .brand h1{font-size:18px;line-height:1.15;font-weight:750;letter-spacing:.1px}
+  .brand p{font-size:11px;color:#93a9bc;margin-top:4px;letter-spacing:.5px}
+  .demo-chip{
+    display:inline-flex;align-items:center;gap:7px;
+    padding:7px 10px;border-radius:999px;
+    background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+    color:#c8d7e5;font-size:11px;white-space:nowrap;
+  }
+  .demo-chip i{width:7px;height:7px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 4px rgba(240,165,59,.13)}
+  .progress-wrap{flex:1;min-width:240px}
+  .progress-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;font-size:11px;color:#a9bbca}
+  .progress-meta strong{color:#fff;font-size:12px}
+  .progress-track{height:6px;background:rgba(255,255,255,.09);border-radius:999px;overflow:hidden}
+  .progress-fill{height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--green));border-radius:999px;transition:width .35s ease}
+  .controls{display:flex;align-items:center;gap:8px}
+  .ctrl{
+    min-height:38px;border:1px solid rgba(255,255,255,.12);border-radius:11px;
+    background:rgba(255,255,255,.07);color:#dfeaf3;padding:0 13px;
+    transition:.18s ease;
+  }
+  .ctrl:hover:not(:disabled){background:rgba(255,255,255,.13);transform:translateY(-1px)}
+  .ctrl:disabled{opacity:.4;cursor:not-allowed}
+  .ctrl.primary{border:none;background:linear-gradient(120deg,var(--cyan),#16a994);color:#06251f;font-weight:800;min-width:112px}
+  .ctrl.primary.playing{background:linear-gradient(120deg,#f8be63,var(--orange));color:#3a2100}
+  .speed-select{height:38px;border-radius:11px;background:#10273b;color:#dfeaf3;border:1px solid rgba(255,255,255,.12);padding:0 8px;outline:none}
+
+  .workspace{
+    flex:1;
+    min-height:0;
+    display:grid;
+    grid-template-columns:330px 230px minmax(610px,1fr);
+    gap:16px;
+    padding:16px 18px 12px;
+  }
+
+  .panel{
+    background:linear-gradient(180deg,rgba(18,43,67,.96),rgba(10,29,46,.96));
+    border:1px solid rgba(255,255,255,.09);
+    border-radius:22px;
+    box-shadow:var(--shadow);
+    min-height:0;
+  }
+  .panel-label{
+    height:42px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 14px;border-bottom:1px solid rgba(255,255,255,.08);
+    color:#dbe7f0;font-size:11px;font-weight:700;letter-spacing:.5px;
+  }
+  .panel-label .tiny{color:#8298aa;font-size:10px;font-weight:500}
+
+  /* LINE phone */
+  .phone-panel{padding:0 8px 8px;display:flex;flex-direction:column}
+  .phone-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:9px 0 3px}
+  .phone{
+    width:292px;height:100%;max-height:666px;min-height:560px;
+    border-radius:38px;background:#050608;padding:9px;
+    box-shadow:0 26px 55px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.16);
+    position:relative;
+  }
+  .phone::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:91px;height:20px;border-radius:0 0 13px 13px;background:#050608;z-index:20}
+  .line-screen{height:100%;border-radius:30px;overflow:hidden;background:#eef1ea;display:flex;flex-direction:column;position:relative}
+  .line-status{height:23px;position:absolute;left:0;right:0;top:0;z-index:15;color:#fff;font-size:9px;display:flex;justify-content:space-between;padding:7px 18px 0}
+  .line-head{
+    flex:0 0 78px;padding:28px 12px 10px;display:flex;align-items:center;gap:9px;
+    color:#fff;background:linear-gradient(125deg,#0d5f46,#0a7352 58%,#0b5c6c);
+    box-shadow:0 3px 10px rgba(0,0,0,.13);z-index:4;
+  }
+  .line-back{font-size:20px;line-height:1}
+  .line-avatar{width:37px;height:37px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,var(--cyan),#1a7d9a);box-shadow:0 7px 16px rgba(0,0,0,.18)}
+  .line-avatar svg{width:23px;height:23px}
+  .line-title{flex:1;min-width:0}
+  .line-title strong{font-size:14px;display:block;line-height:1.2}
+  .line-title span{font-size:8.5px;color:#9cf1c2;display:flex;align-items:center;gap:4px;margin-top:3px}
+  .line-title span::before{content:"";width:5px;height:5px;border-radius:50%;background:#8df0b6}
+  .line-menu{font-size:18px;letter-spacing:2px}
+  .line-chat{flex:1;min-height:0;overflow:auto;padding:10px 9px 11px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
+  .line-chat::-webkit-scrollbar{width:0}
+  .date-pill{align-self:center;padding:3px 9px;border-radius:9px;background:rgba(27,47,62,.12);font-size:8px;color:#63727a}
+  .chat-row{display:flex;align-items:flex-end;gap:6px;animation:chatPop .28s ease both}
+  .chat-row.user{justify-content:flex-end}
+  @keyframes chatPop{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+  .chat-mini{width:23px;height:23px;border-radius:9px;background:linear-gradient(145deg,var(--cyan),#1a7d9a);display:grid;place-items:center;flex:0 0 23px}
+  .chat-mini svg{width:14px;height:14px}
+  .bubble{max-width:222px;border-radius:14px;padding:8px 10px;font-size:10px;line-height:1.55;box-shadow:0 2px 7px rgba(13,39,54,.08);color:#263642}
+  .bubble.ai{background:#fff;border-top-left-radius:4px}
+  .bubble.user{background:#d8f5cf;border-top-right-radius:4px;color:#23412b}
+  .bubble b{font-weight:800;color:#0e5f4d}
+  .typing{display:flex;gap:3px;background:#fff;padding:9px 11px;border-radius:13px;border-top-left-radius:4px;width:max-content}
+  .typing i{width:5px;height:5px;border-radius:50%;background:#7d8e99;animation:typing 1s infinite}
+  .typing i:nth-child(2){animation-delay:.18s}.typing i:nth-child(3){animation-delay:.36s}
+  @keyframes typing{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+  .line-result{width:226px;background:#fff;border-radius:15px;overflow:hidden;box-shadow:0 7px 20px rgba(17,48,65,.16);border:1px solid rgba(13,95,70,.18);animation:chatPop .32s ease both}
+  .result-head{padding:9px 10px;background:linear-gradient(125deg,#0a6c4e,#0b7a57 52%,#0d5e75);color:#fff;position:relative}
+  .result-head .eyebrow{font-size:7.5px;letter-spacing:1.2px;color:#aef0cf;text-transform:uppercase}
+  .result-head h3{font-size:12px;margin-top:3px;line-height:1.25}
+  .result-head .price{font-size:20px;font-weight:850;margin-top:5px;letter-spacing:.1px}
+  .result-head .price small{font-size:9px;font-weight:600;opacity:.85}
+  .verified{position:absolute;right:9px;top:9px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:11px}
+  .result-body{padding:9px 10px}
+  .route-line{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:6px}
+  .route-point strong{font-size:10px;color:#1c3342;display:block}.route-point span{font-size:7.5px;color:#7b8b96}
+  .route-point.right{text-align:right}
+  .route-arrow{font-size:13px;color:#0f7457}
+  .result-meta{margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .meta-box{padding:5px 6px;border-radius:8px;background:#f2f6f5}
+  .meta-box span{display:block;font-size:7px;color:#7b8b96}.meta-box b{font-size:8.5px;color:#233b49}
+  .cutoff-mini{margin-top:7px;padding:6px 7px;border-left:3px solid var(--orange);background:#fff8eb;border-radius:6px;font-size:7.7px;color:#67523a;line-height:1.55}
+  .result-actions{display:flex;border-top:1px solid #e8eeee}
+  .result-actions button{flex:1;border:0;background:#fff;color:#0d6f51;padding:8px 3px;font-size:8.5px;font-weight:750}
+  .result-actions button+button{border-left:1px solid #e8eeee}
+  .result-actions button:last-child{background:#e7f8ef}
+  .line-input{flex:0 0 47px;background:#fff;display:flex;align-items:center;gap:7px;padding:6px 8px;border-top:1px solid #dde4df}
+  .plus{width:24px;height:24px;border-radius:50%;background:#f0f3f0;display:grid;place-items:center;color:#547060;font-weight:700}
+  .fake-input{flex:1;height:29px;background:#f2f4f2;border-radius:15px;padding:7px 10px;color:#9aa7a0;font-size:9px}
+  .send-dot{width:29px;height:29px;border-radius:50%;background:var(--green);display:grid;place-items:center;color:#fff;font-size:13px}
+  .line-sheet{position:absolute;inset:0;z-index:30;background:rgba(2,11,15,.45);display:none;align-items:flex-end;backdrop-filter:blur(2px)}
+  .line-sheet.show{display:flex;animation:fade .18s ease}
+  .sheet-card{width:100%;max-height:82%;overflow:auto;background:#fff;border-radius:20px 20px 0 0;color:#263642;padding:12px 12px 18px;box-shadow:0 -10px 30px rgba(0,0,0,.18)}
+  .sheet-grab{width:35px;height:4px;border-radius:4px;background:#d6dddd;margin:0 auto 10px}
+  .sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}.sheet-head strong{font-size:13px}.sheet-close{border:0;width:25px;height:25px;border-radius:50%;background:#eef2f1;color:#58706a}
+  .sheet-section{padding:8px;border-radius:10px;background:#f5f8f7;margin-top:7px}.sheet-section h4{font-size:9px;color:#0c7253;margin-bottom:6px}.sheet-row{display:flex;justify-content:space-between;gap:8px;font-size:8.5px;padding:3px 0;border-bottom:1px dashed #dce4e1}.sheet-row:last-child{border-bottom:0}.sheet-row b{text-align:right}
+
+  /* Orchestration */
+  .agent-panel{display:flex;flex-direction:column;min-height:0}
+  .agent-body{padding:11px;display:flex;flex-direction:column;gap:10px;min-height:0;overflow:hidden}
+  .request-card{padding:10px;border-radius:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+  .request-card .req-head{font-size:9px;color:#8ca3b5;text-transform:uppercase;letter-spacing:1.1px;margin-bottom:7px}
+  .request-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .request-item{padding:6px;border-radius:8px;background:rgba(4,18,30,.45);min-height:37px}
+  .request-item span{font-size:7.5px;color:#8299aa;display:block}.request-item b{font-size:9px;line-height:1.25;display:block;margin-top:2px;color:#e7f1f7}
+  .pipeline{display:flex;flex-direction:column;gap:6px;position:relative}
+  .pipe-stage{display:flex;align-items:center;gap:8px;padding:8px;border-radius:11px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06);transition:.25s ease;position:relative}
+  .pipe-stage:not(:last-child)::after{content:"";position:absolute;left:18px;top:100%;width:1px;height:7px;background:rgba(255,255,255,.14)}
+  .stage-icon{width:21px;height:21px;border-radius:7px;display:grid;place-items:center;background:#17344d;color:#91aabd;font-size:10px;transition:.25s ease}
+  .stage-txt{flex:1}.stage-txt strong{font-size:9.5px;display:block}.stage-txt span{font-size:7.5px;color:#8199aa;display:block;margin-top:1px}
+  .stage-state{font-size:7px;color:#7890a2;text-transform:uppercase;letter-spacing:.7px}
+  .pipe-stage.active{background:rgba(38,198,181,.1);border-color:rgba(38,198,181,.45);box-shadow:0 0 0 3px rgba(38,198,181,.06)}
+  .pipe-stage.active .stage-icon{background:var(--cyan);color:#062a27;animation:pulse 1.2s infinite}.pipe-stage.active .stage-state{color:#70e7d8}
+  .pipe-stage.done{background:rgba(6,199,85,.08);border-color:rgba(6,199,85,.22)}
+  .pipe-stage.done .stage-icon{background:var(--green);color:#fff}.pipe-stage.done .stage-state{color:#72eaa2}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(38,198,181,.28)}50%{box-shadow:0 0 0 5px rgba(38,198,181,0)}}
+  .capture-card{padding:9px;border-radius:12px;background:#081a29;border:1px solid rgba(255,255,255,.07)}
+  .capture-card h3{font-size:9px;color:#b8c8d4;margin-bottom:7px;display:flex;justify-content:space-between}.capture-card h3 span{color:#6f879a;font-weight:500}
+  .capture-list{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .capture-item{font-size:8px;color:#7d93a4;padding:6px;border-radius:7px;background:#10263a;display:flex;align-items:center;gap:5px}
+  .capture-item i{width:12px;height:12px;border-radius:50%;display:grid;place-items:center;background:#263c50;color:#8498a8;font-style:normal;font-size:7px}
+  .capture-item.done{color:#dff9e8;background:rgba(6,199,85,.1)}.capture-item.done i{background:var(--green);color:#fff}
+  .json-card{display:none;padding:8px;border-radius:10px;background:#06131f;border:1px solid rgba(38,198,181,.22);font-family:Consolas,monospace;font-size:7px;line-height:1.45;color:#8de5d9;white-space:pre-wrap;max-height:115px;overflow:auto}
+  .json-card.show{display:block;animation:fade .25s ease}
+  .event-log{flex:1;min-height:70px;overflow:auto;border-top:1px solid rgba(255,255,255,.07);padding-top:8px}
+  .event-log::-webkit-scrollbar{width:4px}.event-log::-webkit-scrollbar-thumb{background:#28455b;border-radius:5px}
+  .event{font-size:7.5px;line-height:1.4;color:#7991a3;padding:3px 0 3px 10px;position:relative}.event::before{content:"";position:absolute;left:0;top:7px;width:4px;height:4px;border-radius:50%;background:#43627a}.event strong{color:#c9d7e1;font-weight:650}.event.ok::before{background:var(--green)}.event.run::before{background:var(--cyan)}
+
+  /* Browser */
+  .browser-panel{display:flex;flex-direction:column;min-width:0;position:relative;overflow:hidden}
+  .browser-top{height:78px;flex:0 0 78px;background:#e9edf1;color:#253746;border-radius:22px 22px 0 0;border-bottom:1px solid #ced7de}
+  .tab-row{height:34px;display:flex;align-items:flex-end;padding-left:10px;background:#dce3e8}
+  .browser-tab{height:29px;width:230px;border-radius:9px 9px 0 0;background:#fff;display:flex;align-items:center;gap:7px;padding:0 10px;font-size:9px;color:#435564;box-shadow:0 -1px 3px rgba(0,0,0,.04)}
+  .browser-tab .tab-logo{width:14px;height:14px;border-radius:4px;background:linear-gradient(140deg,var(--red),#f06a74);display:grid;place-items:center;color:#fff;font-size:8px;font-weight:800}
+  .browser-tab .tab-close{margin-left:auto;color:#8997a2;font-size:12px}
+  .nav-row{height:44px;display:flex;align-items:center;gap:10px;padding:0 11px;background:#fff}
+  .nav-icon{color:#758492;font-size:13px}.nav-icon.muted{opacity:.45}
+  .address{height:29px;flex:1;border-radius:14px;background:#f1f4f6;display:flex;align-items:center;gap:7px;padding:0 11px;font-size:9px;color:#5d6d79}
+  .address .lock{font-size:9px;color:#36775d}.browser-demo-tag{font-size:8px;color:#8f5a16;background:#fff2d9;border:1px solid #f1d6a3;padding:4px 7px;border-radius:8px}
+  .browser-stage{flex:1;min-height:0;position:relative;background:#f5f7f8;overflow:hidden}
+  .browser-body{height:100%;overflow:auto;color:#1c2d3b;background:#f5f7f8;position:relative;scroll-behavior:smooth}
+  .browser-body::-webkit-scrollbar{width:7px}.browser-body::-webkit-scrollbar-thumb{background:#c3ccd3;border-radius:5px}
+  .agent-cursor{position:absolute;left:50%;top:50%;z-index:50;pointer-events:none;display:none;transition:left .55s cubic-bezier(.2,.8,.2,1),top .55s cubic-bezier(.2,.8,.2,1),transform .12s ease;filter:drop-shadow(0 6px 5px rgba(0,0,0,.24))}
+  .agent-cursor.show{display:block}
+  .cursor-pointer{width:28px;height:35px;position:relative}
+  .cursor-pointer svg{width:28px;height:35px}
+  .cursor-label{position:absolute;left:20px;top:23px;white-space:nowrap;padding:4px 7px;border-radius:7px;background:#071c2c;color:#9ff7e6;border:1px solid rgba(38,198,181,.5);font-size:8px;font-weight:750;box-shadow:0 7px 16px rgba(0,0,0,.25)}
+  .agent-cursor.clicking{transform:scale(.82)}
+  .ripple{position:absolute;z-index:48;width:12px;height:12px;border-radius:50%;border:2px solid var(--cyan);pointer-events:none;animation:ripple .65s ease-out forwards}
+  @keyframes ripple{to{width:64px;height:64px;margin:-26px 0 0 -26px;opacity:0}}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .scan-flash{position:absolute;z-index:45;border:2px solid var(--green);background:rgba(6,199,85,.06);border-radius:10px;pointer-events:none;animation:scan 1s ease forwards}
+  @keyframes scan{0%{opacity:0;box-shadow:0 0 0 0 rgba(6,199,85,.24)}25%{opacity:1;box-shadow:0 0 0 5px rgba(6,199,85,.12)}100%{opacity:0;box-shadow:0 0 0 12px rgba(6,199,85,0)}}
+
+  /* Simulated site common */
+  .site-shell{min-height:100%;background:#f4f6f8}
+  .site-top{height:55px;background:#fff;border-bottom:1px solid #e2e7eb;display:flex;align-items:center;padding:0 20px;gap:20px;position:sticky;top:0;z-index:4}
+  .ocean-logo{display:flex;align-items:center;gap:8px;font-weight:900;font-size:13px;letter-spacing:.5px;color:#17314c}.ocean-logo i{width:25px;height:25px;border-radius:7px;background:linear-gradient(145deg,var(--red),var(--red-dark));display:grid;place-items:center;color:#fff;font-style:normal;font-size:11px}.ocean-logo em{font-style:normal;color:var(--red)}
+  .site-spacer{flex:1}.site-help{font-size:8.5px;color:#647786}.site-user{display:flex;align-items:center;gap:7px;font-size:8.5px;color:#344a5a}.site-user .u{width:26px;height:26px;border-radius:50%;background:#dce9f0;display:grid;place-items:center;color:#315a75;font-weight:800}
+  .site-content{padding:18px 20px 25px}
+  .crumb{font-size:8px;color:#82919c;margin-bottom:7px}.page-title{font-size:20px;color:#17324a;line-height:1.2}.page-sub{font-size:9px;color:#70818e;margin-top:5px}
+  .site-card{background:#fff;border:1px solid #e1e7eb;border-radius:12px;box-shadow:0 5px 16px rgba(31,55,70,.06)}
+
+  /* Login */
+  .login-page{height:100%;display:grid;grid-template-columns:42% 58%;background:#fff}
+  .login-visual{background:linear-gradient(145deg,#0b2d4a,#0c5071 55%,#0a7d78);color:#fff;padding:34px;position:relative;overflow:hidden}
+  .login-visual::before,.login-visual::after{content:"";position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.13)}
+  .login-visual::before{width:330px;height:330px;right:-145px;top:-130px}.login-visual::after{width:260px;height:260px;left:-120px;bottom:-110px}
+  .login-brand{display:flex;align-items:center;gap:9px;font-weight:900;letter-spacing:.7px;font-size:16px;position:relative;z-index:2}.login-brand i{width:32px;height:32px;border-radius:9px;background:var(--red);font-style:normal;display:grid;place-items:center}.login-brand span{color:#ff6c76}
+  .login-copy{position:absolute;left:34px;right:34px;bottom:42px;z-index:2}.login-copy h2{font-size:26px;line-height:1.12}.login-copy p{font-size:9px;color:#b7d5e2;line-height:1.55;margin-top:10px;max-width:280px}.login-badges{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap}.login-badges span{font-size:7.5px;padding:5px 7px;border:1px solid rgba(255,255,255,.22);border-radius:8px;background:rgba(255,255,255,.07)}
+  .login-form-wrap{display:flex;align-items:center;justify-content:center;padding:30px}.login-form{width:310px}.login-form .overline{font-size:8px;color:var(--red);font-weight:800;letter-spacing:1.4px;text-transform:uppercase}.login-form h1{font-size:24px;color:#172d40;margin-top:6px}.login-form p{font-size:9px;color:#7b8a96;margin:5px 0 18px}.field-label{display:block;font-size:8px;color:#526774;font-weight:750;margin:10px 0 5px}.login-input{width:100%;height:38px;border:1px solid #dce4e9;border-radius:8px;padding:0 11px;font-size:9px;color:#243a49;outline:none;transition:.2s}.login-input:focus,.target-focus{border-color:var(--cyan)!important;box-shadow:0 0 0 3px rgba(38,198,181,.12)!important}.password-wrap{position:relative}.password-wrap span{position:absolute;right:11px;top:11px;color:#8997a1;font-size:10px}.login-row{display:flex;justify-content:space-between;align-items:center;font-size:8px;color:#6e7f8c;margin:10px 0 15px}.login-btn{width:100%;height:39px;border:0;border-radius:8px;background:linear-gradient(120deg,var(--red),#c82a36);color:#fff;font-size:10px;font-weight:800;box-shadow:0 7px 15px rgba(227,58,71,.22)}.login-note{font-size:7.5px;color:#9a6a29;background:#fff7e8;border:1px solid #f3ddb4;border-radius:7px;padding:7px 8px;margin-top:12px;line-height:1.4}
+
+  /* Dashboard and search */
+  .dash-grid{display:grid;grid-template-columns:180px 1fr;min-height:100%}.side-nav{background:#112d47;color:#dce8f1;padding:14px 10px}.side-brand{height:40px;display:flex;align-items:center;gap:7px;padding:0 7px 10px;border-bottom:1px solid rgba(255,255,255,.09);font-size:11px;font-weight:850}.side-brand i{width:24px;height:24px;border-radius:7px;background:var(--red);display:grid;place-items:center;font-style:normal}.side-group{font-size:7px;color:#718ca2;text-transform:uppercase;letter-spacing:1px;margin:13px 8px 6px}.side-item{height:34px;border-radius:8px;padding:0 9px;display:flex;align-items:center;gap:8px;font-size:9px;color:#b9cbd8;margin:3px 0;position:relative;transition:.2s}.side-item .si{width:19px;height:19px;border-radius:6px;background:rgba(255,255,255,.07);display:grid;place-items:center;font-size:9px}.side-item.active{background:rgba(255,255,255,.09);color:#fff}.side-item.highlight{background:linear-gradient(110deg,rgba(227,58,71,.95),rgba(185,37,49,.95));color:#fff;box-shadow:0 7px 15px rgba(227,58,71,.23)}.side-item small{margin-left:auto;font-size:7px;background:var(--orange);color:#402400;padding:2px 5px;border-radius:5px;font-weight:800}
+  .dash-main{background:#f4f6f8}.dash-top{height:51px;background:#fff;border-bottom:1px solid #e0e7ec;display:flex;align-items:center;padding:0 17px}.dash-top .search-all{height:29px;width:190px;border-radius:8px;background:#f2f5f7;color:#87949e;padding:8px 10px;font-size:8px}.dash-top .account{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:8px;color:#4c606f}.dash-top .account i{width:25px;height:25px;border-radius:50%;background:#e4edf3;display:grid;place-items:center;color:#315b79;font-style:normal;font-weight:800}.dash-content{padding:18px}.hello{font-size:18px;color:#183249}.hello-sub{font-size:9px;color:#738590;margin-top:4px}.quick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-top:15px}.quick-card{background:#fff;border:1px solid #e0e7eb;border-radius:11px;padding:14px;min-height:100px}.quick-card .qicon{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:#edf4f8;color:#2b698e;font-size:14px}.quick-card h3{font-size:10px;color:#213a4b;margin-top:10px}.quick-card p{font-size:7.5px;color:#84929d;margin-top:4px;line-height:1.45}.quick-card.featured{border-color:rgba(227,58,71,.28);background:linear-gradient(140deg,#fff,#fff8f8)}.quick-card.featured .qicon{background:#ffe9eb;color:var(--red)}
+
+  .search-card{margin-top:14px;padding:14px}.section-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.section-title h2{font-size:12px;color:#1b3549}.section-title span{font-size:7.5px;color:#82909b}.form-grid{display:grid;grid-template-columns:1fr 1fr 150px;gap:10px}.form-field label{display:block;font-size:7.5px;color:#647886;font-weight:700;margin-bottom:4px}.form-control{height:35px;border:1px solid #dce5ea;border-radius:8px;background:#fff;padding:0 10px;display:flex;align-items:center;gap:7px;font-size:8.5px;color:#2b4050;transition:.2s}.form-control .pin{color:var(--red)}.form-control input,.form-control select{width:100%;border:0;outline:0;background:transparent;color:#263c4b;font-size:8.5px}.cargo-area{margin-top:13px;padding-top:12px;border-top:1px solid #edf0f2}.cargo-head{font-size:9px;color:#334b5b;font-weight:750;margin-bottom:7px}.cargo-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.cargo-box{border:1px solid #dce5ea;border-radius:9px;padding:9px;background:#fbfcfd}.cargo-box h4{font-size:8.5px;color:#2d4454;margin-bottom:7px}.cargo-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px}.mini-field label{font-size:6.8px;color:#7b8b96;display:block;margin-bottom:3px}.mini-input{height:30px;border:1px solid #e0e7eb;border-radius:7px;padding:0 7px;font-size:8px;width:100%;outline:0;background:#fff}.commodity-row{margin-top:10px;display:grid;grid-template-columns:1fr 160px;gap:10px;align-items:end}.search-btn{height:37px;border:0;border-radius:8px;background:linear-gradient(120deg,var(--red),#c52835);color:#fff;font-size:9px;font-weight:800;box-shadow:0 7px 16px rgba(227,58,71,.2)}.form-help{font-size:7px;color:#8a98a2;margin-top:8px}
+
+  /* Results */
+  .search-summary{margin-top:12px;padding:10px 12px;display:flex;align-items:center;gap:12px}.summary-route{font-size:11px;font-weight:800;color:#203a4b}.summary-route span{color:var(--red);margin:0 6px}.summary-data{font-size:7.5px;color:#73838e}.summary-spacer{flex:1}.edit-search{border:1px solid #d8e1e6;background:#fff;color:#3a5465;border-radius:7px;font-size:8px;padding:6px 9px}.result-toolbar{display:flex;align-items:center;margin:12px 0 8px}.result-toolbar strong{font-size:10px;color:#273e4d}.result-toolbar span{font-size:7.5px;color:#7a8994;margin-left:6px}.sort-select{margin-left:auto;border:1px solid #dce4e9;background:#fff;border-radius:7px;padding:6px 8px;font-size:8px;color:#405665}.voyage-list{display:flex;flex-direction:column;gap:8px}.voyage-card{display:grid;grid-template-columns:98px 1fr 120px 32px;align-items:center;gap:10px;padding:11px 12px;background:#fff;border:1px solid #e0e7eb;border-radius:11px;box-shadow:0 4px 12px rgba(32,53,66,.04);transition:.2s}.voyage-card:hover{border-color:#c4d7e2;transform:translateY(-1px)}.voyage-card.selected-target{border-color:rgba(227,58,71,.45);box-shadow:0 0 0 3px rgba(227,58,71,.06)}.depart span,.arrive span{font-size:7px;color:#7d8d98;display:block}.depart b,.arrive b{font-size:10px;color:#20394a;display:block;margin-top:2px}.vessel{padding-left:11px;border-left:1px solid #e5eaed}.vessel strong{font-size:9.5px;color:#20394a;display:block}.vessel small{font-size:7.2px;color:#7b8b96;display:block;margin-top:2px}.via{font-size:7.5px;color:#6d7e89;margin-top:4px}.duration{text-align:right}.duration b{font-size:13px;color:#1c3d50;display:block}.duration span{font-size:7px;color:#82919c}.arrow-go{width:27px;height:27px;border-radius:50%;background:#f2f5f7;display:grid;place-items:center;color:#456476;font-size:12px}.late-badge{display:inline-block;margin-top:4px;font-size:6.7px;color:#a45b00;background:#fff1d9;border-radius:5px;padding:2px 5px}
+
+  /* Detail tabs */
+  .detail-hero{background:#fff;border-bottom:1px solid #e1e7eb;padding:13px 20px 0;position:sticky;top:55px;z-index:3}.detail-topline{display:flex;align-items:flex-start;gap:14px}.back-link{font-size:8px;color:#597283;padding-top:4px}.detail-route{flex:1}.detail-route h2{font-size:15px;color:#17364b}.detail-route p{font-size:8px;color:#71828e;margin-top:3px}.detail-price{text-align:right}.detail-price span{font-size:7px;color:#81909b;display:block}.detail-price b{font-size:20px;color:#0f7254}.tabs{display:flex;gap:4px;margin-top:12px}.tab-btn{border:0;background:transparent;color:#71818d;padding:8px 14px;font-size:8.5px;font-weight:750;border-bottom:3px solid transparent}.tab-btn.active{color:var(--red);border-bottom-color:var(--red)}.detail-content{padding:14px 20px 24px}.detail-card{background:#fff;border:1px solid #e0e7eb;border-radius:11px;overflow:hidden}.detail-card-head{padding:10px 12px;border-bottom:1px solid #e6ebee;display:flex;align-items:center;justify-content:space-between}.detail-card-head h3{font-size:10px;color:#243f50}.detail-card-head span{font-size:7px;color:#7f8f9a}.rate-table{width:100%;border-collapse:collapse;font-size:7.8px}.rate-table th{padding:8px;background:#173750;color:#fff;text-align:right;font-weight:700}.rate-table th:first-child{text-align:left}.rate-table td{padding:6px 8px;border-bottom:1px solid #edf0f2;text-align:right;color:#354b5b}.rate-table td:first-child{text-align:left}.rate-table .group td{font-weight:800;background:#f4f7f9;color:#233d4e}.rate-table .sub td:first-child{padding-left:22px;color:#627582}.rate-table .subtotal td{font-weight:800;background:#eef5f7;color:#173d52}.rate-table .qty td{color:#6b7d89;font-style:italic}.fx-note{font-size:6.6px;color:#8e9aa3;margin-left:5px}.grand-total{display:flex;justify-content:flex-end;align-items:center;gap:14px;padding:11px 13px;background:linear-gradient(120deg,#f2fbf7,#e8f8f1);border-top:1px solid #d9eee3}.grand-total span{font-size:8px;color:#567167}.grand-total b{font-size:19px;color:#08704f}.extract-pill{font-size:7px!important;background:#dff8ea;color:#08704f!important;padding:4px 7px;border-radius:7px;font-weight:800}
+  .route-layout{display:grid;grid-template-columns:1fr 240px;gap:12px}.route-card{padding:13px}.route-step{display:grid;grid-template-columns:18px 1fr;gap:9px;position:relative;padding-bottom:18px}.route-step:not(:last-child)::after{content:"";position:absolute;left:8px;top:18px;bottom:0;width:2px;background:#d9e4e7}.route-dot{width:18px;height:18px;border-radius:50%;background:#0f7657;color:#fff;display:grid;place-items:center;font-size:7px;z-index:1}.route-step.transfer .route-dot{background:var(--orange);color:#4f2c00}.route-info .tag{font-size:6.5px;color:#7c8d98;letter-spacing:1px}.route-info h4{font-size:10px;color:#203b4c;margin-top:2px}.route-info p{font-size:7.5px;color:#73838f;line-height:1.55;margin-top:3px}.cutoff-card{padding:12px}.transit-big{text-align:center;padding:8px;border-radius:9px;background:#edf8f4;margin-bottom:10px}.transit-big span{font-size:7px;color:#69827a;display:block}.transit-big b{font-size:19px;color:#0b7253}.cutoff-card h4{font-size:8.5px;color:#263f4e;margin-bottom:6px}.cutoff-row{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px solid #ebeff1;font-size:7.5px}.cutoff-row:last-child{border-bottom:0}.cutoff-row span{color:#71828e}.cutoff-row b{text-align:right;color:#293f4e}
+  .dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.dd-card{padding:13px}.dd-card h3{font-size:10px;color:#1f3b4c;margin-bottom:8px}.dd-title{font-size:7px;color:#fff;padding:5px 7px;border-radius:6px;background:#1f62a5;display:inline-block;margin-bottom:8px}.dd-card.import .dd-title{background:#0d7858}.dd-row{display:grid;grid-template-columns:1fr 72px 72px;gap:7px;padding:8px 0;border-bottom:1px solid #edf0f2;font-size:7.5px;align-items:center}.dd-row:last-child{border-bottom:0}.dd-row b{color:#263f4f}.days{text-align:center;background:#f2f6f8;border-radius:6px;padding:5px;color:#315166}.days strong{font-size:11px}.days span{display:block;font-size:6px;color:#778791}
+  .fee-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}.fee-card{padding:14px;text-align:center}.fee-icon{width:35px;height:35px;border-radius:11px;margin:0 auto 9px;display:grid;place-items:center;background:#fff0f1;color:var(--red);font-size:16px}.fee-card h3{font-size:9px;color:#263f4f;min-height:24px}.fee-card .fee-price{font-size:19px;font-weight:850;color:#173b52;margin-top:6px}.fee-card .fee-price small{font-size:8px}.fee-card p{font-size:7px;color:#7b8b96;margin-top:4px}
+  .ready-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:40;background:rgba(245,247,248,.72);backdrop-filter:blur(3px);animation:fade .25s ease}.ready-card{width:310px;background:#fff;border-radius:15px;border:1px solid #d9e8e2;box-shadow:0 20px 50px rgba(27,55,69,.2);padding:20px;text-align:center}.ready-check{width:48px;height:48px;border-radius:50%;background:var(--green);color:#fff;display:grid;place-items:center;margin:0 auto;font-size:24px;box-shadow:0 0 0 8px rgba(6,199,85,.1)}.ready-card h2{font-size:15px;color:#173a4b;margin-top:13px}.ready-card p{font-size:8px;color:#71828e;line-height:1.55;margin-top:6px}.ready-tags{display:flex;justify-content:center;gap:5px;margin-top:10px}.ready-tags span{font-size:7px;background:#edf7f3;color:#0b7153;padding:4px 6px;border-radius:6px}
+
+  .step-footer{
+    height:54px;flex:0 0 54px;margin:0 18px 13px;border-radius:15px;
+    display:flex;align-items:center;gap:13px;padding:0 15px;
+    background:rgba(9,29,45,.93);border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 12px 30px rgba(0,0,0,.22);
+  }
+  .step-number{width:30px;height:30px;border-radius:10px;background:linear-gradient(145deg,var(--cyan),#149e8e);display:grid;place-items:center;color:#062820;font-size:12px;font-weight:900}
+  .step-copy{flex:1}.step-copy strong{font-size:11px;display:block}.step-copy span{font-size:8px;color:#8ba2b4;display:block;margin-top:2px}
+  .step-action{font-size:8px;color:#9ff0e3;border:1px solid rgba(38,198,181,.25);background:rgba(38,198,181,.08);padding:6px 9px;border-radius:8px;max-width:390px;text-align:right}
+
+  .target-pulse{position:relative;box-shadow:0 0 0 4px rgba(38,198,181,.15)!important;border-color:var(--cyan)!important}
+  .target-pulse::after{content:"";position:absolute;inset:-5px;border:2px solid rgba(38,198,181,.58);border-radius:inherit;animation:targetPulse 1s infinite;pointer-events:none}
+  @keyframes targetPulse{0%,100%{opacity:.9;transform:scale(1)}50%{opacity:.25;transform:scale(1.03)}}
+
+  @media(max-height:720px){
+    .topbar{height:68px;flex-basis:68px;padding-top:8px;padding-bottom:8px}.brand-mark{width:41px;height:41px}.workspace{padding-top:10px}.step-footer{height:46px;flex-basis:46px;margin-bottom:8px}.phone{max-height:590px}.panel-label{height:36px}.browser-top{height:70px;flex-basis:70px}.tab-row{height:31px}.nav-row{height:39px}.topbar .demo-chip{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 32 32" fill="none"><path d="M7 20.5h18M10 16h12M13 11.5h6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M6 24.5c2.3 1.3 4.8 1.3 7.2 0 2.4 1.3 4.9 1.3 7.3 0 1.8 1 3.7 1.2 5.5.6" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/></svg>
+      </div>
+      <div><h1>FreightLink AI · Shipping Rate Agent</h1><p>LINE → AI Browser Automation → Shipping Rate → LINE</p></div>
+    </div>
+    <div class="demo-chip"><i></i>Prototype จำลอง · ไม่เชื่อมต่อเว็บสายเรือจริง</div>
+    <div class="progress-wrap">
+      <div class="progress-meta"><strong id="progressTitle">พร้อมเริ่มสาธิต</strong><span id="progressCount">0 / 15</span></div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+    <div class="controls">
+      <button class="ctrl primary" id="playBtn">▶ เริ่มอัตโนมัติ</button>
+      <button class="ctrl" id="nextBtn">ถัดไป</button>
+      <button class="ctrl" id="resetBtn">↺ เริ่มใหม่</button>
+      <select class="speed-select" id="speedSelect" aria-label="ความเร็วสาธิต">
+        <option value="1">1×</option><option value="1.5">1.5×</option><option value="2">2×</option>
+      </select>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="panel phone-panel">
+      <div class="panel-label"><span>① หน้าแอป LINE ของผู้ใช้</span><span class="tiny">Customer chat</span></div>
+      <div class="phone-wrap">
+        <div class="phone">
+          <div class="line-screen">
+            <div class="line-status"><span>09:41</span><span>5G ▪ 87%</span></div>
+            <div class="line-head">
+              <span class="line-back">‹</span>
+              <div class="line-avatar">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V8.2A4.2 4.2 0 019.2 4h5.6A4.2 4.2 0 0119 8.2v4.3a4.2 4.2 0 01-4.2 4.2H10l-5 3v-3.2z" fill="#fff" opacity=".96"/><path d="M8.5 9.8h7M8.5 12.6h4.6" stroke="#0b7353" stroke-width="1.4" stroke-linecap="round"/></svg>
+              </div>
+              <div class="line-title"><strong>FreightLink AI</strong><span>ผู้ช่วยค้นหาราคาสายเรือ · ออนไลน์</span></div>
+              <span class="line-menu">⋮</span>
+            </div>
+            <div class="line-chat" id="lineChat"></div>
+            <div class="line-input"><div class="plus">＋</div><div class="fake-input">พิมพ์ข้อความ…</div><div class="send-dot">➤</div></div>
+            <div class="line-sheet" id="lineSheet" onclick="if(event.target===this) closeLineSheet()">
+              <div class="sheet-card">
+                <div class="sheet-grab"></div>
+                <div class="sheet-head"><strong>รายละเอียดราคาที่ AI เก็บมา</strong><button class="sheet-close" onclick="closeLineSheet()">✕</button></div>
+                <div id="sheetContent"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel agent-panel">
+      <div class="panel-label"><span>② AI Orchestration</span><span class="tiny" id="agentState">Idle</span></div>
+      <div class="agent-body">
+        <div class="request-card">
+          <div class="req-head">Parsed request</div>
+          <div class="request-grid" id="requestGrid">
+            <div class="request-item"><span>Origin</span><b>—</b></div>
+            <div class="request-item"><span>Destination</span><b>—</b></div>
+            <div class="request-item"><span>Departure</span><b>—</b></div>
+            <div class="request-item"><span>Cargo</span><b>—</b></div>
+          </div>
+        </div>
+
+        <div class="pipeline">
+          <div class="pipe-stage" id="stage-webhook"><div class="stage-icon">↙</div><div class="stage-txt"><strong>LINE Webhook</strong><span>รับข้อความจากผู้ใช้</span></div><div class="stage-state">WAIT</div></div>
+          <div class="pipe-stage" id="stage-parser"><div class="stage-icon">{ }</div><div class="stage-txt"><strong>Intent Parser</strong><span>แยก route / date / cargo</span></div><div class="stage-state">WAIT</div></div>
+          <div class="pipe-stage" id="stage-browser"><div class="stage-icon">⌁</div><div class="stage-txt"><strong>AI Browser Agent</strong><span>Login และกดหน้าเว็บ</span></div><div class="stage-state">WAIT</div></div>
+          <div class="pipe-stage" id="stage-normalizer"><div class="stage-icon">✓</div><div class="stage-txt"><strong>Rate Normalizer</strong><span>รวมราคาและข้อมูลสำคัญ</span></div><div class="stage-state">WAIT</div></div>
+          <div class="pipe-stage" id="stage-line"><div class="stage-icon">➤</div><div class="stage-txt"><strong>LINE Messaging API</strong><span>ส่ง Flex Message กลับ</span></div><div class="stage-state">WAIT</div></div>
+        </div>
+
+        <div class="capture-card">
+          <h3>ข้อมูลที่ AI เก็บจากเว็บ <span id="captureCount">0/4</span></h3>
+          <div class="capture-list">
+            <div class="capture-item" id="capture-rate"><i>1</i>Rate</div>
+            <div class="capture-item" id="capture-route"><i>2</i>Route</div>
+            <div class="capture-item" id="capture-dd"><i>3</i>D&amp;D</div>
+            <div class="capture-item" id="capture-fees"><i>4</i>Fees</div>
+          </div>
+        </div>
+        <pre class="json-card" id="jsonCard"></pre>
+        <div class="event-log" id="eventLog"></div>
+      </div>
+    </section>
+
+    <section class="panel browser-panel">
+      <div class="browser-top">
+        <div class="tab-row"><div class="browser-tab"><span class="tab-logo">O</span><span id="tabTitle">AI Browser Worker</span><span class="tab-close">×</span></div></div>
+        <div class="nav-row"><span class="nav-icon muted">←</span><span class="nav-icon muted">→</span><span class="nav-icon">↻</span><div class="address"><span class="lock">▣</span><span id="addressText">agent.freightlink.local/session/ready</span></div><div class="browser-demo-tag">DEMO SESSION</div></div>
+      </div>
+      <div class="browser-stage" id="browserStage">
+        <div class="browser-body" id="browserBody"></div>
+        <div class="agent-cursor" id="agentCursor">
+          <div class="cursor-pointer"><svg viewBox="0 0 28 35" fill="none"><path d="M4 2.5L23.8 20.4l-9.1 1.1-4.5 9-6.2-28z" fill="#fff" stroke="#071c2c" stroke-width="1.7" stroke-linejoin="round"/></svg><span class="cursor-label" id="cursorLabel">AI Agent</span></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="step-footer">
+    <div class="step-number" id="stepNumber">0</div>
+    <div class="step-copy"><strong id="stepTitle">พร้อมเริ่ม Demo</strong><span id="stepDescription">กด “เริ่มอัตโนมัติ” เพื่อดู AI รับคำถามจาก LINE แล้วไปกดหน้าเว็บสายเรือทีละขั้น</span></div>
+    <div class="step-action" id="stepAction">Flow: LINE → Backend → AI Login → SpotOn Search → Extract → LINE</div>
+  </footer>
+</div>
+
+<script>
+  // Single-file interactive prototype. All credentials, URLs and actions below are simulated.
+  const lineChat = document.getElementById('lineChat');
+  const browserBody = document.getElementById('browserBody');
+  const browserStage = document.getElementById('browserStage');
+  const cursor = document.getElementById('agentCursor');
+  const cursorLabel = document.getElementById('cursorLabel');
+  const playBtn = document.getElementById('playBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const speedSelect = document.getElementById('speedSelect');
+  const eventLog = document.getElementById('eventLog');
+  const jsonCard = document.getElementById('jsonCard');
+
+  const rateData = {
+    origin:'LAEM CHABANG (THLCH) - THAILAND',
+    destination:'HAMBURG (DEHAM) - GERMANY',
+    departure:'16 JUL 2026',
+    cargo:["20' ST Standard × 1 · 22,000 KGM","40' High Cube × 1 · 22,000 KGM"],
+    commodity:'Freight All Kinds',
+    selected:{etd:'19-Jul-2026',service:'LCXPCNC',vessel:'AMOURIEUX',eta:'28-Aug-2026',transit:'40 Days',via:'SINGAPORE'},
+    total:'9332 USD'
+  };
+
+  let currentStep = -1;
+  let playing = false;
+  let runToken = 0;
+  let completedStages = new Set();
+  let captured = new Set();
+
+  const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms / Number(speedSelect.value || 1)));
+
+  function setUrl(url,title){document.getElementById('addressText').textContent=url;document.getElementById('tabTitle').textContent=title;}
+  function scrollLine(){lineChat.scrollTop=lineChat.scrollHeight;}
+  function avatar(){return '<div class="chat-mini"><svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V8.2A4.2 4.2 0 019.2 4h5.6A4.2 4.2 0 0119 8.2v4.3a4.2 4.2 0 01-4.2 4.2H10l-5 3v-3.2z" fill="#fff"/><path d="M8.5 9.8h7M8.5 12.6h4.6" stroke="#0b7353" stroke-width="1.4" stroke-linecap="round"/></svg></div>'}
+  function addUser(text){lineChat.insertAdjacentHTML('beforeend',`<div class="chat-row user"><div class="bubble user">${text}</div></div>`);scrollLine();}
+  function addAI(text){lineChat.insertAdjacentHTML('beforeend',`<div class="chat-row">${avatar()}<div class="bubble ai">${text}</div></div>`);scrollLine();}
+  function addTyping(){const id='typing-'+Date.now();lineChat.insertAdjacentHTML('beforeend',`<div class="chat-row" id="${id}">${avatar()}<div class="typing"><i></i><i></i><i></i></div></div>`);scrollLine();return id;}
+  function removeEl(id){document.getElementById(id)?.remove()}
+
+  function logEvent(text,kind=''){
+    const time = new Date().toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    eventLog.insertAdjacentHTML('beforeend',`<div class="event ${kind}"><strong>${time}</strong> · ${text}</div>`);
+    eventLog.scrollTop=eventLog.scrollHeight;
+  }
+
+  function stageState(id,state){
+    const el=document.getElementById('stage-'+id); if(!el)return;
+    el.classList.remove('active','done');
+    const label=el.querySelector('.stage-state');
+    if(state==='active'){el.classList.add('active');label.textContent='RUN'}
+    else if(state==='done'){el.classList.add('done');label.textContent='DONE';completedStages.add(id)}
+    else {label.textContent='WAIT'}
+    document.getElementById('agentState').textContent = state==='active' ? 'Working' : (completedStages.size===5 ? 'Completed' : 'Ready');
+  }
+  function resetStages(){['webhook','parser','browser','normalizer','line'].forEach(id=>{const el=document.getElementById('stage-'+id);el.classList.remove('active','done');el.querySelector('.stage-state').textContent='WAIT'});completedStages.clear();captured.clear();['rate','route','dd','fees'].forEach(id=>document.getElementById('capture-'+id).classList.remove('done'));document.getElementById('captureCount').textContent='0/4';}
+  function capture(id){captured.add(id);const el=document.getElementById('capture-'+id);el.classList.add('done');el.querySelector('i').textContent='✓';document.getElementById('captureCount').textContent=`${captured.size}/4`;}
+
+  function setRequestParsed(){
+    document.getElementById('requestGrid').innerHTML=`
+      <div class="request-item"><span>Origin</span><b>LAEM CHABANG<br>THLCH</b></div>
+      <div class="request-item"><span>Destination</span><b>HAMBURG<br>DEHAM</b></div>
+      <div class="request-item"><span>Departure</span><b>16 JUL 2026</b></div>
+      <div class="request-item"><span>Cargo</span><b>20ST ×1<br>40HC ×1</b></div>`;
+  }
+
+  function setStepUI(index,step){
+    const count=index+1;
+    document.getElementById('stepNumber').textContent=count;
+    document.getElementById('stepTitle').textContent=step.title;
+    document.getElementById('stepDescription').textContent=step.description;
+    document.getElementById('stepAction').textContent=step.action;
+    document.getElementById('progressTitle').textContent=step.title;
+    document.getElementById('progressCount').textContent=`${count} / ${steps.length}`;
+    document.getElementById('progressFill').style.width=`${(count/steps.length)*100}%`;
+  }
+
+  function clearTargets(){document.querySelectorAll('.target-pulse,.target-focus').forEach(e=>e.classList.remove('target-pulse','target-focus'))}
+
+  async function pointTo(selector,label='AI Agent',click=true){
+    clearTargets();
+    const el=document.querySelector(selector);
+    if(!el){cursor.classList.remove('show');return}
+    el.scrollIntoView({block:'center',inline:'center',behavior:'smooth'});
+    await delay(220);
+    const s=browserStage.getBoundingClientRect();
+    const r=el.getBoundingClientRect();
+    const x=Math.max(14,Math.min(s.width-48,r.left-s.left+r.width*.55));
+    const y=Math.max(12,Math.min(s.height-48,r.top-s.top+r.height*.55));
+    cursorLabel.textContent=label;
+    cursor.classList.add('show');
+    cursor.style.left=x+'px';cursor.style.top=y+'px';
+    el.classList.add('target-pulse');
+    await delay(650);
+    if(click){
+      cursor.classList.add('clicking');
+      const ripple=document.createElement('div');ripple.className='ripple';ripple.style.left=x+'px';ripple.style.top=y+'px';browserStage.appendChild(ripple);
+      await delay(130);cursor.classList.remove('clicking');setTimeout(()=>ripple.remove(),700);
+    }
+    await delay(220);
+    el.classList.remove('target-pulse');
+  }
+
+  function scanElement(selector){
+    const el=document.querySelector(selector);if(!el)return;
+    const s=browserStage.getBoundingClientRect(),r=el.getBoundingClientRect();
+    const flash=document.createElement('div');flash.className='scan-flash';flash.style.left=(r.left-s.left)+'px';flash.style.top=(r.top-s.top)+'px';flash.style.width=r.width+'px';flash.style.height=r.height+'px';browserStage.appendChild(flash);setTimeout(()=>flash.remove(),1100);
+  }
+
+  async function typeValue(selector,value){
+    const el=document.querySelector(selector);if(!el)return;
+    await pointTo(selector,'AI พิมพ์ข้อมูล',true);el.focus();el.classList.add('target-focus');el.value='';
+    for(const ch of value){el.value+=ch;await delay(20)}
+    el.dispatchEvent(new Event('input',{bubbles:true}));await delay(170);el.classList.remove('target-focus');
+  }
+  async function setSelect(selector,value){await pointTo(selector,'AI เลือกค่า',true);const el=document.querySelector(selector);if(el){el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}))}await delay(180)}
+
+  function renderIdle(){
+    cursor.classList.remove('show'); clearTargets();
+    setUrl('agent.freightlink.local/session/ready','AI Browser Worker');
+    browserBody.innerHTML=`<div style="height:100%;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#e8f5f2,#f5f7f8 48%)"><div style="text-align:center;color:#355163"><div style="width:68px;height:68px;border-radius:22px;background:linear-gradient(145deg,#26c6b5,#1f62a5);display:grid;place-items:center;margin:0 auto 15px;box-shadow:0 14px 30px rgba(31,98,165,.18);font-size:30px;color:#fff">⌁</div><h2 style="font-size:18px">AI Browser Worker พร้อมทำงาน</h2><p style="font-size:9px;color:#7b8c98;margin-top:7px">รอคำขอจาก LINE Webhook เพื่อเริ่ม session ใหม่</p><div style="margin-top:13px;font-size:8px;color:#8f5a16;background:#fff3db;border:1px solid #f0d7a8;padding:7px 10px;border-radius:8px">Prototype นี้จำลองการคลิกเท่านั้น ไม่มีการส่งข้อมูลออกภายนอก</div></div></div>`;
+  }
+
+  function renderLogin(){
+    cursor.classList.remove('show'); clearTargets();
+    setUrl('secure.oceanline.demo/sign-in','OceanLine | Sign in');
+    browserBody.innerHTML=`<div class="login-page">
+      <div class="login-visual"><div class="login-brand"><i>O</i>OCEAN<span>LINE</span></div><div class="login-copy"><h2>Move cargo.<br>Connect markets.</h2><p>Access schedules, SpotOn rates, bookings and documentation from one secure shipping portal.</p><div class="login-badges"><span>SpotOn Rates</span><span>Schedules</span><span>Bookings</span></div></div></div>
+      <div class="login-form-wrap"><div class="login-form"><div class="overline">Customer portal</div><h1>Welcome back</h1><p>Sign in to continue to OceanLine Services.</p><label class="field-label">Email or customer ID</label><input class="login-input" id="loginEmail" autocomplete="off"><label class="field-label">Password</label><div class="password-wrap"><input class="login-input" id="loginPassword" type="password" autocomplete="off"><span>◉</span></div><div class="login-row"><span>□ Remember me</span><span style="color:#b92f3a">Forgot password?</span></div><button class="login-btn" id="loginBtn">SIGN IN</button><div class="login-note">บัญชีและเว็บไซต์ในหน้าจอนี้เป็นข้อมูลจำลองสำหรับ Demo เท่านั้น</div></div></div>
+    </div>`;
+  }
+
+  function sideNav(active='dashboard'){
+    return `<aside class="side-nav"><div class="side-brand"><i>O</i>OCEANLINE</div><div class="side-group">Workspace</div><div class="side-item ${active==='dashboard'?'active':''}"><span class="si">⌂</span>Dashboard</div><div class="side-item ${active==='spoton'?'highlight':''}" id="spotonMenu"><span class="si">$</span>SpotOn rates<small>LIVE</small></div><div class="side-item"><span class="si">◷</span>Schedules</div><div class="side-item"><span class="si">▣</span>Bookings</div><div class="side-group">Manage</div><div class="side-item"><span class="si">≡</span>Documents</div><div class="side-item"><span class="si">?</span>Support</div></aside>`;
+  }
+
+  function dashTop(){return `<div class="dash-top"><div class="search-all">⌕ Search services…</div><div class="account">Demo Customer <i>DC</i></div></div>`}
+
+  function renderDashboard(){
+    cursor.classList.remove('show'); clearTargets();
+    setUrl('portal.oceanline.demo/dashboard','OceanLine | Dashboard');
+    browserBody.innerHTML=`<div class="dash-grid">${sideNav('dashboard')}<section class="dash-main">${dashTop()}<div class="dash-content"><h1 class="hello">Good morning, Demo Customer</h1><p class="hello-sub">What would you like to do today?</p><div class="quick-grid"><div class="quick-card featured"><div class="qicon">$</div><h3>Get a SpotOn rate</h3><p>Instant ocean freight rate with space and equipment commitment.</p></div><div class="quick-card"><div class="qicon">◷</div><h3>Find a schedule</h3><p>Explore vessel routes and departure options.</p></div><div class="quick-card"><div class="qicon">▣</div><h3>Manage bookings</h3><p>Review active shipments and documents.</p></div></div></div></section></div>`;
+  }
+
+  function renderSearch(){
+    cursor.classList.remove('show'); clearTargets();
+    setUrl('portal.oceanline.demo/spoton/search','OceanLine | SpotOn Search');
+    browserBody.innerHTML=`<div class="dash-grid">${sideNav('spoton')}<section class="dash-main">${dashTop()}<div class="dash-content"><div class="crumb">Home / SpotOn / New search</div><h1 class="page-title">Get your SpotOn rate</h1><p class="page-sub">Enter shipment details to view available sailings and charges.</p><div class="site-card search-card">
+      <div class="section-title"><h2>1. Route and departure</h2><span>Required fields</span></div>
+      <div class="form-grid">
+        <div class="form-field"><label>Origin</label><div class="form-control" id="originControl"><span class="pin">●</span><input id="originInput" placeholder="Port or city"></div></div>
+        <div class="form-field"><label>Destination</label><div class="form-control" id="destinationControl"><span class="pin">●</span><input id="destinationInput" placeholder="Port or city"></div></div>
+        <div class="form-field"><label>Expected departure date</label><div class="form-control"><input id="departureInput" placeholder="DD MMM YYYY"></div></div>
+      </div>
+      <div class="cargo-area"><div class="cargo-head">2. Cargo details</div><div class="cargo-grid">
+        <div class="cargo-box" id="cargo20"><h4>20' ST Standard</h4><div class="cargo-fields"><div class="mini-field"><label>Quantity</label><input class="mini-input" id="qty20" type="number"></div><div class="mini-field"><label>Max net weight (KGM)</label><input class="mini-input" id="weight20"></div></div></div>
+        <div class="cargo-box" id="cargo40"><h4>40' High Cube</h4><div class="cargo-fields"><div class="mini-field"><label>Quantity</label><input class="mini-input" id="qty40" type="number"></div><div class="mini-field"><label>Max net weight (KGM)</label><input class="mini-input" id="weight40"></div></div></div>
+      </div><div class="commodity-row"><div class="form-field"><label>Commodity</label><div class="form-control"><select id="commoditySelect"><option value="">Select commodity</option><option>Freight All Kinds</option><option>Machinery</option><option>Textile products</option></select></div></div><button class="search-btn" id="searchBtn">SEARCH SPOTON RATES</button></div><div class="form-help">Rates shown in this prototype use the supplied screen-transcription data.</div></div>
+    </div></section></div>`;
+  }
+
+  function renderResults(){
+    cursor.classList.remove('show'); clearTargets();
+    setUrl('portal.oceanline.demo/spoton/results','OceanLine | SpotOn Results');
+    const cards=[
+      ['19-Jul-2026','AMOURIEUX','LCXPCNC','28-Aug-2026','40','SINGAPORE',''],
+      ['19-Jul-2026','ZHONG GU BEI JING','TVI','24-Aug-2026','37','SINGAPORE',''],
+      ['19-Jul-2026','AMOURIEUX','LCXPCNC','27-Aug-2026','39','SINGAPORE',''],
+      ['20-Jul-2026','ZHONG GU BEI JING','TVI','31-Aug-2026','42','SINGAPORE','Late Booking']
+    ];
+    browserBody.innerHTML=`<div class="site-shell"><div class="site-top"><div class="ocean-logo"><i>O</i>OCEAN<em>LINE</em></div><div class="site-spacer"></div><div class="site-help">Help & support</div><div class="site-user"><div class="u">DC</div>Demo Customer</div></div><div class="site-content"><div class="crumb">SpotOn / Search results</div><h1 class="page-title">Available SpotOn sailings</h1><p class="page-sub">Sorted by earliest departure.</p><div class="site-card search-summary"><div><div class="summary-route">LAEM CHABANG <span>→</span> HAMBURG</div><div class="summary-data">Expected departure: 16 JUL 2026 · 20ST ×1 · 40HC ×1 · Freight All Kinds</div></div><div class="summary-spacer"></div><button class="edit-search">Edit search</button></div><div class="result-toolbar"><strong>4 sailing options</strong><span>Space and equipment subject to SpotOn terms</span><select class="sort-select"><option>Earliest Departure</option></select></div><div class="voyage-list">${cards.map((c,i)=>`<div class="voyage-card ${i===0?'selected-target':''}" id="voyage${i+1}"><div class="depart"><span>DEPARTURE</span><b>${c[0]}</b><span>LAEM CHABANG</span></div><div class="vessel"><strong>${c[1]}</strong><small>Service ${c[2]}</small><div class="via">Via ${c[5]}</div>${c[6]?`<span class="late-badge">${c[6]}</span>`:''}</div><div class="duration"><span>ARRIVAL ${c[3]}</span><b>${c[4]} Days</b><span>Transit time</span></div><div class="arrow-go">›</div></div>`).join('')}</div></div></div>`;
+  }
+
+  function detailHeader(active){
+    const tabs=[['rate','Rate'],['route','Route'],['dd','D&D'],['fees','Fees']];
+    return `<div class="site-top"><div class="ocean-logo"><i>O</i>OCEAN<em>LINE</em></div><div class="site-spacer"></div><div class="site-help">Help & support</div><div class="site-user"><div class="u">DC</div>Demo Customer</div></div><div class="detail-hero"><div class="detail-topline"><div class="back-link">‹ Results</div><div class="detail-route"><h2>LAEM CHABANG → HAMBURG</h2><p>AMOURIEUX · Service LCXPCNC · 19-Jul-2026 to 28-Aug-2026 · Via SINGAPORE</p></div><div class="detail-price"><span>TOTAL PRICE</span><b>9,332 USD</b></div></div><div class="tabs">${tabs.map(t=>`<button class="tab-btn ${active===t[0]?'active':''}" id="tab${t[0][0].toUpperCase()+t[0].slice(1)}">${t[1]}</button>`).join('')}</div></div>`;
+  }
+
+  function rateTab(){return `<div class="detail-content"><div class="detail-card" id="rateTableCard"><div class="detail-card-head"><h3>Rate details</h3><span>Charges details · 20ST · 40HC · BL · Currency</span></div><table class="rate-table"><thead><tr><th>Charges details</th><th>20ST</th><th>40HC</th><th>BL</th><th>Currency</th></tr></thead><tbody>
+    <tr class="group"><td>Ocean Freight</td><td>2,748</td><td>4,395</td><td>–</td><td>USD</td></tr>
+    <tr class="group"><td>Charges payable as per freight</td><td>547</td><td>694</td><td>–</td><td>USD</td></tr>
+    <tr class="sub"><td>Emergency Fuel Surcharge</td><td>265</td><td>530</td><td>–</td><td>USD</td></tr>
+    <tr class="sub"><td>Intermodal Vaccine Surcharge</td><td>82</td><td>164</td><td>–</td><td>USD</td></tr>
+    <tr class="sub"><td>Overweight Surcharge</td><td>200</td><td>–</td><td>–</td><td>USD</td></tr>
+    <tr class="group"><td>Charges payable at export</td><td>83</td><td>130</td><td>27</td><td>USD</td></tr>
+    <tr class="sub"><td>Advanced Manifest Declaration fee</td><td>–</td><td>–</td><td>27</td><td>USD</td></tr>
+    <tr class="sub"><td>Terminal Handling Charge (DTHC) at origin <span class="fx-note">converted in subtotal</span></td><td>2,800</td><td>4,390</td><td>–</td><td>THB</td></tr>
+    <tr class="group"><td>Charges payable at import</td><td>354</td><td>354</td><td>–</td><td>USD</td></tr>
+    <tr class="sub"><td>ISPS - Terminal Security Fee at destination</td><td>20</td><td>20</td><td>–</td><td>EUR</td></tr>
+    <tr class="sub"><td>Terminal Handling Charge (DTHC) at destination <span class="fx-note">converted in subtotal</span></td><td>280</td><td>280</td><td>–</td><td>EUR</td></tr>
+    <tr class="subtotal"><td>Subtotal per container</td><td>3,732</td><td>5,573</td><td>27</td><td>USD</td></tr>
+    <tr class="qty"><td>Quantity</td><td>× 1</td><td>× 1</td><td>× 1</td><td></td></tr>
+    </tbody></table><div class="grand-total" id="rateTotal"><span class="extract-pill">AI EXTRACT TARGET</span><span>TOTAL PRICE</span><b>9,332 USD</b></div></div></div>`}
+
+  function routeTab(){return `<div class="detail-content"><div class="route-layout" id="routeContent"><div class="detail-card route-card">
+    <div class="route-step"><div class="route-dot">1</div><div class="route-info"><div class="tag">POL · ORIGIN</div><h4>LAEM CHABANG, TH — LCB TERMINAL B5</h4><p>Sunday, 19-Jul-2026 · Vessel AMOURIEUX · Service LCXPCNC</p></div></div>
+    <div class="route-step transfer"><div class="route-dot">2</div><div class="route-info"><div class="tag">TRMT · TRANSSHIPMENT</div><h4>SINGAPORE, SG — CMA CGM PSA LION TERMINAL</h4><p>Tuesday, 21-Jul-2026 → Sunday, 26-Jul-2026</p></div></div>
+    <div class="route-step"><div class="route-dot">3</div><div class="route-info"><div class="tag">POD · DESTINATION</div><h4>HAMBURG, DE — EUROGATE HAMBURG</h4><p>Friday, 28-Aug-2026 · Vessel CMA CGM VENDOME · Service FAL2</p></div></div>
+    </div><div class="detail-card cutoff-card"><div class="transit-big"><span>TRANSIT TIME</span><b>40 Days</b></div><h4>Applicable cut-off dates<br>LAEM CHABANG, TH</h4><div class="cutoff-row"><span>Booking Cut-off</span><b>15 Jul 2026<br>11:59 AM</b></div><div class="cutoff-row"><span>Port Cut-off</span><b>17 Jul 2026<br>05:00 PM</b></div><div class="cutoff-row"><span>VGM Cut-off</span><b>17 Jul 2026<br>09:00 AM</b></div></div></div></div>`}
+
+  function ddTab(){return `<div class="detail-content"><div class="dd-grid" id="ddContent"><div class="detail-card dd-card"><span class="dd-title">EXPORT FREE TIME</span><h3>At origin</h3><div class="dd-row"><b>Demurrage</b><div class="days"><strong>6</strong><span>20ST · Calendar Days</span></div><div class="days"><strong>6</strong><span>40HC · Calendar Days</span></div></div><div class="dd-row"><b>Detention</b><div class="days"><strong>5</strong><span>20ST · Calendar Days</span></div><div class="days"><strong>5</strong><span>40HC · Calendar Days</span></div></div></div><div class="detail-card dd-card import"><span class="dd-title">IMPORT FREE TIME</span><h3>At destination</h3><div class="dd-row"><b>Demurrage</b><div class="days"><strong>4</strong><span>20ST · Calendar Days</span></div><div class="days"><strong>4</strong><span>40HC · Calendar Days</span></div></div><div class="dd-row"><b>Extension</b><div class="days"><strong>5</strong><span>20ST · Calendar Days</span></div><div class="days"><strong>5</strong><span>40HC · Calendar Days</span></div></div><div class="dd-row"><b>Detention</b><div class="days"><strong>4</strong><span>20ST · Calendar Days</span></div><div class="days"><strong>4</strong><span>40HC · Calendar Days</span></div></div></div></div></div>`}
+
+  function feesTab(){return `<div class="detail-content"><div class="fee-grid" id="feesContent"><div class="detail-card fee-card"><div class="fee-icon">×</div><h3>SPOTON<br>Cancellation Fee</h3><div class="fee-price">800 <small>USD</small></div><p>per container</p></div><div class="detail-card fee-card"><div class="fee-icon">✎</div><h3>SPOTON<br>Amendment Fee</h3><div class="fee-price">500 <small>USD</small></div><p>per container</p></div><div class="detail-card fee-card"><div class="fee-icon">!</div><h3>SPOTON<br>No Show Fee</h3><div class="fee-price">1,000 <small>USD</small></div><p>per container</p></div></div></div>`}
+
+  function renderDetail(active='rate'){
+    cursor.classList.remove('show'); clearTargets();
+    setUrl('portal.oceanline.demo/spoton/offer/LCXPCNC-190726','OceanLine | SpotOn Offer');
+    const content=active==='rate'?rateTab():active==='route'?routeTab():active==='dd'?ddTab():feesTab();
+    browserBody.innerHTML=`<div class="site-shell">${detailHeader(active)}${content}</div>`;
+  }
+
+  function showReadyOverlay(){
+    const overlay=document.createElement('div');overlay.className='ready-overlay';overlay.id='readyOverlay';overlay.innerHTML=`<div class="ready-card"><div class="ready-check">✓</div><h2>ข้อมูลพร้อมส่งกลับ LINE</h2><p>AI รวมราคา ตารางเดินเรือ Cut-off, D&amp;D และ SpotOn fees เป็นโครงสร้างเดียวเรียบร้อยแล้ว</p><div class="ready-tags"><span>RATE ✓</span><span>ROUTE ✓</span><span>D&amp;D ✓</span><span>FEES ✓</span></div></div>`;browserStage.appendChild(overlay);
+  }
+
+  function addResultCard(){
+    lineChat.insertAdjacentHTML('beforeend',`<div class="chat-row">${avatar()}<div class="line-result"><div class="result-head"><div class="eyebrow">SPOTON RATE FOUND</div><h3>แหลมฉบัง → ฮัมบูร์ก</h3><div class="price">9,332 <small>USD · TOTAL</small></div><div class="verified">✓</div></div><div class="result-body"><div class="route-line"><div class="route-point"><span>ETD</span><strong>19 JUL 2026</strong><span>AMOURIEUX</span></div><div class="route-arrow">→</div><div class="route-point right"><span>ETA</span><strong>28 AUG 2026</strong><span>40 DAYS</span></div></div><div class="result-meta"><div class="meta-box"><span>Service / Via</span><b>LCXPCNC · SIN</b></div><div class="meta-box"><span>Cargo</span><b>20ST×1 · 40HC×1</b></div></div><div class="cutoff-mini"><b>Cut-off สำคัญ</b><br>Booking: 15 Jul · 11:59<br>VGM: 17 Jul · 09:00<br>Port: 17 Jul · 17:00</div></div><div class="result-actions"><button onclick="openLineSheet('rate')">ค่าใช้จ่าย</button><button onclick="openLineSheet('route')">Route / D&amp;D</button><button onclick="openLineSheet('fees')">Fees</button></div></div></div>`);
+    scrollLine();
+  }
+
+  window.openLineSheet=function(kind){
+    const content=document.getElementById('sheetContent');
+    if(kind==='rate') content.innerHTML=`<div class="sheet-section"><h4>สรุปค่าใช้จ่าย</h4><div class="sheet-row"><span>Ocean Freight</span><b>20ST 2,748 · 40HC 4,395 USD</b></div><div class="sheet-row"><span>Freight surcharges</span><b>547 · 694 USD</b></div><div class="sheet-row"><span>Export charges</span><b>83 · 130 · BL 27 USD</b></div><div class="sheet-row"><span>Import charges</span><b>354 · 354 USD</b></div><div class="sheet-row"><span>Subtotal</span><b>3,732 + 5,573 + 27 USD</b></div><div class="sheet-row"><span>Total</span><b style="color:#0b7253;font-size:11px">9,332 USD</b></div></div><div class="sheet-section"><h4>หมายเหตุสกุลเงิน</h4><div class="sheet-row"><span>DTHC origin</span><b>2,800 / 4,390 THB</b></div><div class="sheet-row"><span>Destination ISPS / DTHC</span><b>20 / 280 EUR ต่อตู้</b></div></div>`;
+    if(kind==='route') content.innerHTML=`<div class="sheet-section"><h4>Route</h4><div class="sheet-row"><span>POL</span><b>LAEM CHABANG · 19 Jul</b></div><div class="sheet-row"><span>Transshipment</span><b>SINGAPORE · 21–26 Jul</b></div><div class="sheet-row"><span>POD</span><b>HAMBURG · 28 Aug</b></div><div class="sheet-row"><span>Transit</span><b>40 Days</b></div></div><div class="sheet-section"><h4>Free time</h4><div class="sheet-row"><span>Export Demurrage / Detention</span><b>6 / 5 Calendar Days</b></div><div class="sheet-row"><span>Import Demurrage / Extension / Detention</span><b>4 / 5 / 4 Calendar Days</b></div></div>`;
+    if(kind==='fees') content.innerHTML=`<div class="sheet-section"><h4>SpotOn Fees</h4><div class="sheet-row"><span>Cancellation</span><b>800 USD / container</b></div><div class="sheet-row"><span>Amendment</span><b>500 USD / container</b></div><div class="sheet-row"><span>No Show</span><b>1,000 USD / container</b></div></div>`;
+    document.getElementById('lineSheet').classList.add('show');
+  }
+  window.closeLineSheet=function(){document.getElementById('lineSheet').classList.remove('show')}
+
+  const steps=[
+    {title:'ผู้ใช้ส่งคำถามผ่าน LINE',description:'ลูกค้าระบุเส้นทาง วันออกเรือ ประเภทตู้ น้ำหนัก และสินค้าในข้อความเดียว',action:'LINE message → webhook payload',run:async()=>{
+      stageState('webhook','active');addUser('ขอราคาสายเรือจาก <b>แหลมฉบังไปฮัมบูร์ก</b> ออกวันที่ <b>16 ก.ค. 2026</b><br>20ST 1 ตู้ + 40HC 1 ตู้ น้ำหนักตู้ละ 22,000 กก. สินค้า Freight All Kinds');logEvent('รับข้อความใหม่จาก LINE user','run');await delay(550);stageState('webhook','done');addAI('รับคำขอแล้วครับ กำลังให้ AI เข้าเว็บสายเรือเพื่อตรวจสอบราคาและตารางเดินเรือ…');}},
+    {title:'Backend แยกข้อมูลคำขอ',description:'Intent Parser แปลงข้อความธรรมชาติเป็นฟิลด์ที่ AI ใช้กรอกเว็บได้',action:'Parse: THLCH → DEHAM · 16 JUL 2026 · 20ST×1 · 40HC×1',run:async()=>{
+      stageState('parser','active');setRequestParsed();logEvent('แยก Origin, Destination, Date, Cargo และ Commodity','run');await delay(650);stageState('parser','done');logEvent('สร้าง browser task ID: RATE-20260716-001','ok');}},
+    {title:'AI เปิดหน้า Login ของสายเรือ',description:'ระบบสร้าง browser session ใหม่และเปิด Customer Portal',action:'Open secure portal (simulated)',run:async()=>{
+      stageState('browser','active');renderLogin();logEvent('เปิด browser session แบบ isolated','run');await delay(500);}},
+    {title:'AI กรอก Username และ Password',description:'ข้อมูลบัญชีใน Demo เป็นข้อมูลจำลองและถูกปิดบัง',action:'AI click → type credentials',run:async()=>{
+      await typeValue('#loginEmail','demo.agent@freightlink.local');await typeValue('#loginPassword','DemoSecure2026!');logEvent('กรอกข้อมูล Login แบบ masked','ok');}},
+    {title:'AI กด Sign in',description:'เข้าสู่หน้า Dashboard ของพอร์ทัลสายเรือ',action:'Click SIGN IN',run:async()=>{
+      await pointTo('#loginBtn','AI กด Login');await delay(350);renderDashboard();logEvent('Login สำเร็จ (simulation)','ok');}},
+    {title:'AI เลือกเมนู SpotOn rates',description:'จาก Dashboard ระบบกดเมนูค้นหาราคา SpotOn',action:'Click SpotOn rates',run:async()=>{
+      await pointTo('#spotonMenu','AI เลือก SpotOn');await delay(300);renderSearch();logEvent('เปิดหน้า SpotOn Search','ok');}},
+    {title:'AI กรอกต้นทาง ปลายทาง และวันออก',description:'กรอก LAEM CHABANG, HAMBURG และ Expected departure date ตามคำถามใน LINE',action:'Type route + departure date',run:async()=>{
+      await typeValue('#originInput','LAEM CHABANG (THLCH) - THAILAND');await typeValue('#destinationInput','HAMBURG (DEHAM) - GERMANY');await typeValue('#departureInput','16 JUL 2026');logEvent('กรอก route และ departure date','ok');}},
+    {title:'AI กรอกรายละเอียดตู้และสินค้า',description:'เพิ่ม 20ST และ 40HC อย่างละ 1 ตู้ น้ำหนักสุทธิสูงสุด 22,000 KGM และ Commodity',action:'Fill cargo: 20ST×1, 40HC×1, 22,000 KGM',run:async()=>{
+      await typeValue('#qty20','1');await typeValue('#weight20','22000');await typeValue('#qty40','1');await typeValue('#weight40','22000');await setSelect('#commoditySelect','Freight All Kinds');logEvent('กรอก cargo และ Freight All Kinds','ok');}},
+    {title:'AI กดค้นหา SpotOn rates',description:'ส่งแบบฟอร์มและรอผลเที่ยวเรือที่เรียงตาม Earliest Departure',action:'Click SEARCH SPOTON RATES',run:async()=>{
+      await pointTo('#searchBtn','AI กด Search');logEvent('ส่งคำขอค้นหา SpotOn','run');await delay(700);renderResults();logEvent('พบเที่ยวเรือ 4 ตัวเลือก','ok');}},
+    {title:'AI เลือกเที่ยวเรือตัวเลือกที่ 1',description:'เลือก AMOURIEUX / LCXPCNC ออก 19-Jul-2026 ถึง 28-Aug-2026 ใช้เวลา 40 วัน',action:'Click first sailing result',run:async()=>{
+      await pointTo('#voyage1','AI เลือกเที่ยวเรือ');await delay(350);renderDetail('rate');logEvent('เปิดรายละเอียด Offer ตัวเลือกที่ 1','ok');}},
+    {title:'AI อ่านแท็บ Rate',description:'เก็บ Ocean Freight, surcharges, export/import charges และราคารวม 9,332 USD',action:'Extract Rate table + TOTAL PRICE',run:async()=>{
+      await pointTo('#rateTotal','AI อ่านราคารวม',false);scanElement('#rateTableCard');await delay(650);capture('rate');logEvent('Rate captured: TOTAL 9,332 USD','ok');}},
+    {title:'AI กดแท็บ Route',description:'เก็บ POL, จุดถ่ายลำ, POD, Transit Time และ Cut-off dates',action:'Click Route → extract route and cut-offs',run:async()=>{
+      await pointTo('#tabRoute','AI กด Route');renderDetail('route');await delay(250);scanElement('#routeContent');await delay(600);capture('route');logEvent('Route + Cut-off dates captured','ok');}},
+    {title:'AI กดแท็บ D&D',description:'เก็บ Export และ Import free time ของ 20ST และ 40HC',action:'Click D&D → extract free time',run:async()=>{
+      await pointTo('#tabDd','AI กด D&D');renderDetail('dd');await delay(250);scanElement('#ddContent');await delay(600);capture('dd');logEvent('D&D free time captured','ok');}},
+    {title:'AI กดแท็บ Fees',description:'เก็บ Cancellation, Amendment และ No Show Fee',action:'Click Fees → extract SpotOn fees',run:async()=>{
+      await pointTo('#tabFees','AI กด Fees');renderDetail('fees');await delay(250);scanElement('#feesContent');await delay(600);capture('fees');logEvent('SpotOn fees captured','ok');stageState('browser','done');}},
+    {title:'AI รวมข้อมูลและส่งกลับ LINE',description:'Rate Normalizer สร้างข้อมูลโครงสร้าง แล้ว LINE Messaging API ส่งผลเป็นการ์ดให้ผู้ใช้',action:'Normalize JSON → LINE Flex Message',run:async()=>{
+      stageState('normalizer','active');jsonCard.classList.add('show');jsonCard.textContent=`{\n  "route": "THLCH-DEHAM",\n  "etd": "2026-07-19",\n  "eta": "2026-08-28",\n  "vessel": "AMOURIEUX",\n  "transit_days": 40,\n  "total": 9332,\n  "currency": "USD"\n}`;showReadyOverlay();logEvent('Normalize multi-currency charge rows','run');await delay(800);stageState('normalizer','done');stageState('line','active');const t=addTyping();await delay(650);removeEl(t);addResultCard();addAI('ส่งผลค้นหาเรียบร้อยครับ ✅ กดปุ่มบนการ์ดเพื่อดู Rate, Route, D&D และ Fees ได้เลย');stageState('line','done');logEvent('ส่ง LINE Flex Message สำเร็จ','ok');await delay(350);document.getElementById('readyOverlay')?.remove();cursor.classList.remove('show');}}
+  ];
+
+  async function runStep(index,token){
+    if(index<0||index>=steps.length)return;
+    const step=steps[index];setStepUI(index,step);nextBtn.disabled=true;
+    try{await step.run()}catch(err){console.error(err);logEvent('Demo error: '+err.message)}
+    if(token!==runToken)return;
+    nextBtn.disabled=index>=steps.length-1;
+    if(index>=steps.length-1){playing=false;playBtn.textContent='✓ Demo เสร็จแล้ว';playBtn.classList.remove('playing');playBtn.disabled=true;document.getElementById('progressTitle').textContent='Demo เสร็จสมบูรณ์'}
+  }
+
+  async function nextStep(){
+    if(currentStep>=steps.length-1)return;
+    currentStep++;const token=runToken;await runStep(currentStep,token);
+  }
+
+  async function playAll(){
+    if(playing){playing=false;runToken++;playBtn.textContent='▶ เล่นต่อ';playBtn.classList.remove('playing');nextBtn.disabled=false;return}
+    if(currentStep>=steps.length-1){resetDemo();await delay(100)}
+    playing=true;const token=++runToken;playBtn.textContent='Ⅱ หยุด';playBtn.classList.add('playing');nextBtn.disabled=true;
+    while(playing && currentStep<steps.length-1 && token===runToken){currentStep++;await runStep(currentStep,token);if(!playing||token!==runToken)break;await delay(500)}
+    if(currentStep<steps.length-1 && token===runToken){playing=false;playBtn.textContent='▶ เล่นต่อ';playBtn.classList.remove('playing');nextBtn.disabled=false}
+  }
+
+  function resetDemo(){
+    playing=false;runToken++;currentStep=-1;playBtn.disabled=false;playBtn.textContent='▶ เริ่มอัตโนมัติ';playBtn.classList.remove('playing');nextBtn.disabled=false;
+    document.getElementById('progressTitle').textContent='พร้อมเริ่มสาธิต';document.getElementById('progressCount').textContent=`0 / ${steps.length}`;document.getElementById('progressFill').style.width='0';
+    document.getElementById('stepNumber').textContent='0';document.getElementById('stepTitle').textContent='พร้อมเริ่ม Demo';document.getElementById('stepDescription').textContent='กด “เริ่มอัตโนมัติ” เพื่อดู AI รับคำถามจาก LINE แล้วไปกดหน้าเว็บสายเรือทีละขั้น';document.getElementById('stepAction').textContent='Flow: LINE → Backend → AI Login → SpotOn Search → Extract → LINE';
+    lineChat.innerHTML=`<div class="date-pill">วันนี้ · 09:41</div><div class="chat-row">${avatar()}<div class="bubble ai">สวัสดีครับ 👋 ส่งเส้นทาง วันออกเรือ ประเภทตู้ และสินค้าเข้ามาได้เลยครับ</div></div>`;
+    eventLog.innerHTML='<div class="event"><strong>SESSION</strong> · Waiting for user request</div>';jsonCard.classList.remove('show');jsonCard.textContent='';resetStages();document.getElementById('agentState').textContent='Idle';
+    document.getElementById('requestGrid').innerHTML='<div class="request-item"><span>Origin</span><b>—</b></div><div class="request-item"><span>Destination</span><b>—</b></div><div class="request-item"><span>Departure</span><b>—</b></div><div class="request-item"><span>Cargo</span><b>—</b></div>';
+    cursor.classList.remove('show');clearTargets();document.querySelectorAll('.ripple,.scan-flash,.ready-overlay').forEach(e=>e.remove());closeLineSheet();renderIdle();scrollLine();
+  }
+
+  playBtn.addEventListener('click',playAll);
+  nextBtn.addEventListener('click',async()=>{if(!playing)await nextStep()});
+  resetBtn.addEventListener('click',resetDemo);
+  resetDemo();
+</script>
+</body>
+</html>

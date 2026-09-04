@@ -1,0 +1,6 @@
+/* Wide desktop composition: use available screen space instead of a narrow reading column. */
+.wrap{width:min(1500px,calc(100% - 80px))}
+.nav{padding-left:max(40px,calc((100% - 1500px)/2));padding-right:max(40px,calc((100% - 1500px)/2))}
+.hero{grid-template-columns:1.05fr .95fr;gap:clamp(42px,7vw,130px)}
+.hero h1{font-size:clamp(42px,5vw,76px)}
+@media(max-width:550px){.wrap{width:calc(100% - 28px)}.nav{padding-left:14px;padding-right:14px}}

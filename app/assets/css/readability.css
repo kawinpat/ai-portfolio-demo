@@ -1,0 +1,13 @@
+/* Larger type and denser desktop composition for portfolio reading. */
+body{font-size:18px}
+.nav a{font-size:15px}.brand small{font-size:10px}
+.lede,.section-lede{font-size:19px}.eyebrow,.label{font-size:12px}
+.button{font-size:15px;min-height:44px}
+.terminal pre{font-size:15px}.terminal-bar{font-size:12px}
+.summary-list small{font-size:14px}
+.workflows{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}.work-card{height:100%}
+.work-head h3,.prompt-card h3{font-size:21px}.work-card dd{font-size:15px}.work-card dt{font-size:11px}
+.prompt-card pre,.diff-card pre{font-size:14px}.prompt-card p:not(.label),.demo-note p{font-size:15px}
+.demo-card>p:not(.label),.evidence-card p:not(.label){font-size:15px}
+@media(max-width:1000px){.workflows{grid-template-columns:1fr}.work-card dd{font-size:14px}}
+@media(max-width:550px){body{font-size:17px}.lede,.section-lede{font-size:17px}.button{font-size:14px}}
