@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FreightLink AI — Shipping Rate Agent Demo</title>
+<title>OceanLine AI — Shipping Rate Agent Demo</title>
 <style>
   :root{
     --bg:#071522;
@@ -87,6 +87,9 @@
   .ctrl:disabled{opacity:.4;cursor:not-allowed}
   .ctrl.primary{border:none;background:linear-gradient(120deg,var(--cyan),#16a994);color:#06251f;font-weight:800;min-width:112px}
   .ctrl.primary.playing{background:linear-gradient(120deg,#f8be63,var(--orange));color:#3a2100}
+  .ctrl.primary.start-pulse{animation:startPulse 1.3s ease-in-out infinite;box-shadow:0 0 0 0 rgba(38,198,181,.68)}
+  @keyframes startPulse{0%,100%{transform:translateY(0);box-shadow:0 0 0 0 rgba(38,198,181,.55),0 7px 16px rgba(38,198,181,.22)}50%{transform:translateY(-2px);box-shadow:0 0 0 8px rgba(38,198,181,0),0 11px 22px rgba(38,198,181,.34)}}
+  @media (prefers-reduced-motion:reduce){.ctrl.primary.start-pulse{animation:none}}
   .speed-select{height:38px;border-radius:11px;background:#10273b;color:#dfeaf3;border:1px solid rgba(255,255,255,.12);padding:0 8px;outline:none}
 
   .workspace{
@@ -292,6 +295,28 @@
   @media(max-height:720px){
     .topbar{height:68px;flex-basis:68px;padding-top:8px;padding-bottom:8px}.brand-mark{width:41px;height:41px}.workspace{padding-top:10px}.step-footer{height:46px;flex-basis:46px;margin-bottom:8px}.phone{max-height:590px}.panel-label{height:36px}.browser-top{height:70px;flex-basis:70px}.tab-row{height:31px}.nav-row{height:39px}.topbar .demo-chip{display:none}
   }
+
+  /* Tablet and mobile layout: keep every part of the interactive demo usable. */
+  @media(max-width:980px){
+    body{min-width:0;overflow:auto}
+    html,body{height:auto;min-height:100%}
+    .app-shell{height:auto;min-height:100dvh}
+    .topbar{height:auto;min-height:78px;flex-wrap:wrap;padding:12px 16px;gap:10px}
+    .brand{min-width:0;flex:1}.demo-chip{display:none}.progress-wrap{order:3;flex-basis:100%}
+    .controls{margin-left:auto}.workspace{grid-template-columns:1fr 1fr;gap:12px;padding:12px;min-height:0;flex:none}
+    .browser-panel{grid-column:1 / -1;min-height:560px}.phone-panel{min-height:650px}.agent-panel{min-height:650px}
+    .step-footer{margin:0 12px 12px;min-height:64px;height:auto;flex:0 0 auto}
+  }
+
+  @media(max-width:620px){
+    .topbar{padding:11px 12px}.brand-mark{width:38px;height:38px;border-radius:12px}.brand-mark svg{width:22px;height:22px}.brand h1{font-size:14px}.brand p{font-size:8px}
+    .controls{order:4;width:100%;display:grid;grid-template-columns:1fr 1fr auto;gap:6px}.ctrl{min-height:36px;padding:0 8px;font-size:11px}.ctrl.primary{min-width:0}.speed-select{height:36px;font-size:11px}
+    .workspace{grid-template-columns:1fr;padding:10px;gap:10px}.phone-panel,.agent-panel,.browser-panel{grid-column:auto;min-height:0}.phone-panel{min-height:590px}.agent-panel{min-height:520px}.browser-panel{min-height:510px}
+    .panel{border-radius:16px}.panel-label{height:39px;padding:0 12px;font-size:10px}.phone-wrap{padding:8px 0}.phone{width:min(292px,calc(100vw - 54px));min-height:520px;max-height:590px}
+    .browser-top{height:66px;flex-basis:66px}.tab-row{height:28px;padding-left:6px}.browser-tab{width:185px;height:27px;font-size:8px}.nav-row{height:38px;padding:0 8px;gap:7px}.browser-demo-tag{display:none}.address{height:26px;font-size:8px;padding:0 8px}
+    .step-footer{align-items:flex-start;gap:9px;padding:10px 11px}.step-number{flex:0 0 28px;width:28px;height:28px}.step-copy strong{font-size:10px}.step-copy span{font-size:7.5px;line-height:1.4}.step-action{display:none}
+    .dash-grid{grid-template-columns:1fr}.side-nav{display:none}.dash-content{padding:12px}.form-grid,.cargo-grid,.commodity-row,.route-layout,.dd-grid{grid-template-columns:1fr}.quick-grid,.fee-grid{grid-template-columns:1fr 1fr}.search-btn{width:100%}.detail-hero{padding-inline:12px}.detail-content{padding:12px}.voyage-card{grid-template-columns:1fr 1fr 24px;gap:7px}.vessel{grid-column:1 / -1;grid-row:2;padding-left:0;border-left:0;border-top:1px solid #e5eaed;padding-top:6px}.duration{text-align:left}.arrow-go{grid-column:3;grid-row:1 / span 2}.rate-table{min-width:520px}.detail-card{overflow-x:auto}
+  }
 </style>
 </head>
 <body>
@@ -301,7 +326,7 @@
       <div class="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 32 32" fill="none"><path d="M7 20.5h18M10 16h12M13 11.5h6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><path d="M6 24.5c2.3 1.3 4.8 1.3 7.2 0 2.4 1.3 4.9 1.3 7.3 0 1.8 1 3.7 1.2 5.5.6" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/></svg>
       </div>
-      <div><h1>FreightLink AI · Shipping Rate Agent</h1><p>LINE → AI Browser Automation → Shipping Rate → LINE</p></div>
+      <div><h1>OceanLine AI · Shipping Rate Agent</h1><p>LINE → AI Browser Automation → Shipping Rate → LINE</p></div>
     </div>
     <div class="demo-chip"><i></i>Prototype จำลอง · ไม่เชื่อมต่อเว็บสายเรือจริง</div>
     <div class="progress-wrap">
@@ -309,7 +334,7 @@
       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
     </div>
     <div class="controls">
-      <button class="ctrl primary" id="playBtn">▶ เริ่มอัตโนมัติ</button>
+      <button class="ctrl primary start-pulse" id="playBtn">▶ เริ่มอัตโนมัติ</button>
       <button class="ctrl" id="nextBtn">ถัดไป</button>
       <button class="ctrl" id="resetBtn">↺ เริ่มใหม่</button>
       <select class="speed-select" id="speedSelect" aria-label="ความเร็วสาธิต">
@@ -330,7 +355,7 @@
               <div class="line-avatar">
                 <svg viewBox="0 0 24 24" fill="none"><path d="M5 17.5V8.2A4.2 4.2 0 019.2 4h5.6A4.2 4.2 0 0119 8.2v4.3a4.2 4.2 0 01-4.2 4.2H10l-5 3v-3.2z" fill="#fff" opacity=".96"/><path d="M8.5 9.8h7M8.5 12.6h4.6" stroke="#0b7353" stroke-width="1.4" stroke-linecap="round"/></svg>
               </div>
-              <div class="line-title"><strong>FreightLink AI</strong><span>ผู้ช่วยค้นหาราคาสายเรือ · ออนไลน์</span></div>
+              <div class="line-title"><strong>OceanLine AI</strong><span>ผู้ช่วยค้นหาราคาสายเรือ · ออนไลน์</span></div>
               <span class="line-menu">⋮</span>
             </div>
             <div class="line-chat" id="lineChat"></div>
@@ -385,7 +410,7 @@
     <section class="panel browser-panel">
       <div class="browser-top">
         <div class="tab-row"><div class="browser-tab"><span class="tab-logo">O</span><span id="tabTitle">AI Browser Worker</span><span class="tab-close">×</span></div></div>
-        <div class="nav-row"><span class="nav-icon muted">←</span><span class="nav-icon muted">→</span><span class="nav-icon">↻</span><div class="address"><span class="lock">▣</span><span id="addressText">agent.freightlink.local/session/ready</span></div><div class="browser-demo-tag">DEMO SESSION</div></div>
+        <div class="nav-row"><span class="nav-icon muted">←</span><span class="nav-icon muted">→</span><span class="nav-icon">↻</span><div class="address"><span class="lock">▣</span><span id="addressText">agent.oceanline.local/session/ready</span></div><div class="browser-demo-tag">DEMO SESSION</div></div>
       </div>
       <div class="browser-stage" id="browserStage">
         <div class="browser-body" id="browserBody"></div>
@@ -522,7 +547,7 @@
 
   function renderIdle(){
     cursor.classList.remove('show'); clearTargets();
-    setUrl('agent.freightlink.local/session/ready','AI Browser Worker');
+    setUrl('agent.oceanline.local/session/ready','AI Browser Worker');
     browserBody.innerHTML=`<div style="height:100%;display:grid;place-items:center;background:radial-gradient(circle at 50% 35%,#e8f5f2,#f5f7f8 48%)"><div style="text-align:center;color:#355163"><div style="width:68px;height:68px;border-radius:22px;background:linear-gradient(145deg,#26c6b5,#1f62a5);display:grid;place-items:center;margin:0 auto 15px;box-shadow:0 14px 30px rgba(31,98,165,.18);font-size:30px;color:#fff">⌁</div><h2 style="font-size:18px">AI Browser Worker พร้อมทำงาน</h2><p style="font-size:9px;color:#7b8c98;margin-top:7px">รอคำขอจาก LINE Webhook เพื่อเริ่ม session ใหม่</p><div style="margin-top:13px;font-size:8px;color:#8f5a16;background:#fff3db;border:1px solid #f0d7a8;padding:7px 10px;border-radius:8px">Prototype นี้จำลองการคลิกเท่านั้น ไม่มีการส่งข้อมูลออกภายนอก</div></div></div>`;
   }
 
@@ -640,7 +665,7 @@
     {title:'AI เปิดหน้า Login ของสายเรือ',description:'ระบบสร้าง browser session ใหม่และเปิด Customer Portal',action:'Open secure portal (simulated)',run:async()=>{
       stageState('browser','active');renderLogin();logEvent('เปิด browser session แบบ isolated','run');await delay(500);}},
     {title:'AI กรอก Username และ Password',description:'ข้อมูลบัญชีใน Demo เป็นข้อมูลจำลองและถูกปิดบัง',action:'AI click → type credentials',run:async()=>{
-      await typeValue('#loginEmail','demo.agent@freightlink.local');await typeValue('#loginPassword','DemoSecure2026!');logEvent('กรอกข้อมูล Login แบบ masked','ok');}},
+      await typeValue('#loginEmail','demo.agent@oceanline.local');await typeValue('#loginPassword','DemoSecure2026!');logEvent('กรอกข้อมูล Login แบบ masked','ok');}},
     {title:'AI กด Sign in',description:'เข้าสู่หน้า Dashboard ของพอร์ทัลสายเรือ',action:'Click SIGN IN',run:async()=>{
       await pointTo('#loginBtn','AI กด Login');await delay(350);renderDashboard();logEvent('Login สำเร็จ (simulation)','ok');}},
     {title:'AI เลือกเมนู SpotOn rates',description:'จาก Dashboard ระบบกดเมนูค้นหาราคา SpotOn',action:'Click SpotOn rates',run:async()=>{
@@ -682,13 +707,13 @@
   async function playAll(){
     if(playing){playing=false;runToken++;playBtn.textContent='▶ เล่นต่อ';playBtn.classList.remove('playing');nextBtn.disabled=false;return}
     if(currentStep>=steps.length-1){resetDemo();await delay(100)}
-    playing=true;const token=++runToken;playBtn.textContent='Ⅱ หยุด';playBtn.classList.add('playing');nextBtn.disabled=true;
+    playing=true;const token=++runToken;playBtn.textContent='Ⅱ หยุด';playBtn.classList.add('playing');playBtn.classList.remove('start-pulse');nextBtn.disabled=true;
     while(playing && currentStep<steps.length-1 && token===runToken){currentStep++;await runStep(currentStep,token);if(!playing||token!==runToken)break;await delay(500)}
     if(currentStep<steps.length-1 && token===runToken){playing=false;playBtn.textContent='▶ เล่นต่อ';playBtn.classList.remove('playing');nextBtn.disabled=false}
   }
 
   function resetDemo(){
-    playing=false;runToken++;currentStep=-1;playBtn.disabled=false;playBtn.textContent='▶ เริ่มอัตโนมัติ';playBtn.classList.remove('playing');nextBtn.disabled=false;
+    playing=false;runToken++;currentStep=-1;playBtn.disabled=false;playBtn.textContent='▶ เริ่มอัตโนมัติ';playBtn.classList.remove('playing');playBtn.classList.add('start-pulse');nextBtn.disabled=false;
     document.getElementById('progressTitle').textContent='พร้อมเริ่มสาธิต';document.getElementById('progressCount').textContent=`0 / ${steps.length}`;document.getElementById('progressFill').style.width='0';
     document.getElementById('stepNumber').textContent='0';document.getElementById('stepTitle').textContent='พร้อมเริ่ม Demo';document.getElementById('stepDescription').textContent='กด “เริ่มอัตโนมัติ” เพื่อดู AI รับคำถามจาก LINE แล้วไปกดหน้าเว็บสายเรือทีละขั้น';document.getElementById('stepAction').textContent='Flow: LINE → Backend → AI Login → SpotOn Search → Extract → LINE';
     lineChat.innerHTML=`<div class="date-pill">วันนี้ · 09:41</div><div class="chat-row">${avatar()}<div class="bubble ai">สวัสดีครับ 👋 ส่งเส้นทาง วันออกเรือ ประเภทตู้ และสินค้าเข้ามาได้เลยครับ</div></div>`;

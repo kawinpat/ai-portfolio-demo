@@ -28,7 +28,7 @@ npm run generate
 
 ## Purpose
 
-This project documents an AI-assisted software-development workflow: AI tool selection, task, supplied context, AI output, developer validation, and result. The FreightLink Shipping Rate Agent is included as a standalone existing interactive prototype under `public/demos/`.
+This project documents an AI-assisted software-development workflow: AI tool selection, task, supplied context, AI output, developer validation, and result. The OceanLine Shipping Rate Agent is included as a standalone existing interactive prototype under `public/demos/`.
 
 ## Before sharing
 

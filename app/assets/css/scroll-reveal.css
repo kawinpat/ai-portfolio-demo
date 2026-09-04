@@ -1,0 +1,41 @@
+/* Motion is applied only after JavaScript marks a section for reveal. */
+.portfolio-hero .hero-copy { animation: hero-enter .72s cubic-bezier(.2,.75,.25,1) both; }
+.portfolio-hero .portfolio-summary { animation: hero-enter .72s .14s cubic-bezier(.2,.75,.25,1) both; }
+
+.js-scroll-reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  filter: blur(3px);
+  transition: opacity .7s ease, transform .7s cubic-bezier(.2,.75,.25,1), filter .7s ease;
+  will-change: opacity, transform, filter;
+}
+
+.js-scroll-reveal.is-visible { opacity: 1; transform: translateY(0); filter: blur(0); }
+
+.js-scroll-reveal.is-visible .work-card,
+.js-scroll-reveal.is-visible .prompt-card,
+.js-scroll-reveal.is-visible .evidence-card {
+  animation: card-enter .55s cubic-bezier(.2,.75,.25,1) both;
+}
+
+.js-scroll-reveal.is-visible .work-card:nth-child(2),
+.js-scroll-reveal.is-visible .prompt-card:nth-child(2),
+.js-scroll-reveal.is-visible .evidence-card:nth-child(2) { animation-delay: .07s; }
+.js-scroll-reveal.is-visible .work-card:nth-child(3),
+.js-scroll-reveal.is-visible .prompt-card:nth-child(3),
+.js-scroll-reveal.is-visible .evidence-card:nth-child(3) { animation-delay: .14s; }
+.js-scroll-reveal.is-visible .work-card:nth-child(4),
+.js-scroll-reveal.is-visible .prompt-card:nth-child(4),
+.js-scroll-reveal.is-visible .evidence-card:nth-child(4) { animation-delay: .21s; }
+.js-scroll-reveal.is-visible .work-card:nth-child(5),
+.js-scroll-reveal.is-visible .evidence-card:nth-child(5) { animation-delay: .28s; }
+
+@keyframes hero-enter { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes card-enter { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio-hero .hero-copy,
+  .portfolio-hero .portfolio-summary,
+  .js-scroll-reveal,
+  .js-scroll-reveal.is-visible { animation: none; opacity: 1; transform: none; filter: none; transition: none; }
+}

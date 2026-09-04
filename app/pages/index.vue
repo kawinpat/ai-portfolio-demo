@@ -41,7 +41,7 @@ const evidence = [
   { title: 'สรุปข้อมูลและเตรียม Slide', tool: 'NotebookLM', text: 'ใช้ NotebookLM ช่วยอ่านและจัดระเบียบข้อมูลจำนวนมากให้เป็นประเด็นสำคัญ จากนั้นนำ Summary และ Slide Outline ไปตรวจความถูกต้อง ปรับลำดับการเล่าเรื่อง และทำ Presentation ต่อด้วยตัวเอง' },
   { title: 'ถามคำถาม ช่วยโค้ด และ Review Code', tool: 'ChatGPT + Gemini', text: 'ใช้ ChatGPT และ Gemini สำหรับถามปัญหาเชิงเทคนิค อธิบายโค้ด หาแนวทางแก้ Error และเปรียบเทียบทางเลือกในการพัฒนา โดยส่งเฉพาะ Context ที่จำเป็นและปกปิดข้อมูลสำคัญก่อนเสมอ' },
   { title: 'พัฒนาและตรวจหลายไฟล์ใน Project', tool: 'OpenAI Codex', text: 'ใช้ Codex อ่าน Context ของ Project เพื่อช่วย Implement feature, แก้ไขโค้ดเดิม, Refactor และ Review การเปลี่ยนแปลงหลายไฟล์ แล้ว Developer ตรวจ Diff, ทดสอบ และตัดสินใจนำโค้ดไปใช้เอง' },
-  { title: 'สร้าง HTML Interactive Demo', tool: 'ChatGPT', text: 'ใช้ ChatGPT ช่วยแปลง Idea และ User flow ให้เป็น HTML Interactive Demo เพื่อสื่อสารวิธีทำงานของระบบได้ชัดเจนขึ้น ตัวอย่างคือ FreightLink AI Shipping Rate Agent ที่เปิดทดลอง Interaction ได้' },
+  { title: 'สร้าง HTML Interactive Demo', tool: 'ChatGPT', text: 'ใช้ ChatGPT ช่วยแปลง Idea และ User flow ให้เป็น HTML Interactive Demo เพื่อสื่อสารวิธีทำงานของระบบได้ชัดเจนขึ้น ตัวอย่างคือ OceanLine AI Shipping Rate Agent ที่เปิดทดลอง Interaction ได้' },
   { title: 'สร้าง Dashboard Prototype', tool: 'Claude AI', text: 'ใช้ Claude AI ช่วยสร้าง Dashboard Prototype จาก Requirement และข้อมูลที่ต้องการแสดง เพื่อเห็นภาพ Layout, สถานะ, Cards และ Flow ของหน้าจอได้รวดเร็ว แล้วนำไปปรับตาม Feedback ก่อนพัฒนาต่อ' }
 ]
 
@@ -55,12 +55,43 @@ const promptSamples = [
 const demoOpen = ref(false)
 const navOpen = ref(false)
 const closeNav = () => { navOpen.value = false }
+
+let scrollObserver: IntersectionObserver | undefined
+
+onMounted(() => {
+  // A portfolio should always start from its introduction after a browser refresh.
+  if ('scrollRestoration' in window.history) window.history.scrollRestoration = 'manual'
+  if (window.location.hash) window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
+  requestAnimationFrame(() => window.scrollTo(0, 0))
+
+  const sections = document.querySelectorAll<HTMLElement>('main > section:not(.hero)')
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+  sections.forEach((section) => section.classList.add('js-scroll-reveal'))
+  if (reduceMotion) {
+    sections.forEach((section) => section.classList.add('is-visible'))
+    return
+  }
+
+  scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible')
+        scrollObserver?.unobserve(entry.target)
+      }
+    })
+  }, { threshold: 0.12, rootMargin: '0px 0px -48px' })
+
+  sections.forEach((section) => scrollObserver?.observe(section))
+})
+
+onBeforeUnmount(() => scrollObserver?.disconnect())
 </script>
 
 <template>
   <header class="nav"><a class="brand" href="#top">Kawinpat <small>AI-ASSISTED DEVELOPMENT PORTFOLIO</small></a><button class="menu" :aria-expanded="navOpen" aria-label="เปิด/ปิดเมนู" @click="navOpen = !navOpen">☰</button><nav :class="{ open: navOpen }"><a href="#workflows" @click="closeNav">AI ช่วยอะไรบ้าง</a><a href="#demo" @click="closeNav">Demo</a><a href="#evidence" @click="closeNav">หลักฐาน</a></nav></header>
   <main id="top">
-    <section class="hero wrap portfolio-hero"><div><p class="eyebrow">BACKEND / FULL-STACK DEVELOPER</p><h1>สิ่งที่ AI <em>ช่วยในการทำงาน</em><br>และสิ่งที่เคยทำ</h1><p class="lede">Portfolio นี้รวบรวมรูปแบบการใช้ AI ในงานจริง ตั้งแต่การค้นหาคำตอบ เขียนและตรวจโค้ด สรุปความรู้ทำสไลด์ ไปจนถึงสร้าง Interactive HTML Demo และ Dashboard Prototype</p><div class="actions"><a class="button primary" href="#workflows">ดู AI Workflows</a><button class="button" @click="demoOpen = true">เปิด FreightLink Demo</button></div></div><aside class="terminal portfolio-summary"><div class="terminal-bar"><span>● ● ●</span><b>AI WORK SUMMARY</b><em>ACTIVE</em></div><div class="summary-list"><p><i>01</i><span>NotebookLM<br><small>สรุปข้อมูลและทำ Slide</small></span></p><p><i>02</i><span>ChatGPT + Gemini<br><small>ถามคำถาม ช่วยเขียน และ Review Code</small></span></p><p><i>03</i><span>OpenAI Codex<br><small>เขียนโค้ด แก้ไข และตรวจหลายไฟล์</small></span></p><p><i>04</i><span>ChatGPT HTML Demo<br><small>สร้าง Prototype ที่กดลองได้</small></span></p><p><i>05</i><span>Claude AI Dashboard<br><small>สร้าง Dashboard Prototype</small></span></p></div></aside></section>
+    <section class="hero wrap portfolio-hero"><div class="hero-copy"><p class="eyebrow"><i></i> BACKEND / FULL-STACK DEVELOPER</p><h1>AI <em>ช่วยงานอะไรบ้าง?</em><span>และผลงานที่เคยทำจริง</span></h1><p class="lede">Portfolio นี้รวบรวมรูปแบบการใช้ AI ในงานจริง ตั้งแต่การค้นหาคำตอบ เขียนและตรวจโค้ด สรุปความรู้ทำสไลด์ ไปจนถึงสร้าง Interactive HTML Demo และ Dashboard Prototype</p><div class="actions"><a class="button primary" href="#workflows">ดู AI Workflows <span>↓</span></a><button class="button" @click="demoOpen = true">เปิด OceanLine Demo <span>↗</span></button></div><div class="hero-stats"><div><b>5</b><span>AI Tools ที่ใช้</span></div><div><b>01</b><span>Interactive Demo</span></div><div><b>100%</b><span>Developer validates</span></div></div></div><aside class="terminal portfolio-summary"><div class="terminal-bar"><span>● ● ●</span><b>AI WORK SUMMARY</b><em><i></i> ACTIVE</em></div><div class="summary-list"><p><i>01</i><span>NotebookLM<br><small>สรุปข้อมูลและทำ Slide</small></span><b>KNOWLEDGE</b></p><p><i>02</i><span>ChatGPT + Gemini<br><small>ถามคำถาม ช่วยเขียน และ Review Code</small></span><b>ASSIST</b></p><p><i>03</i><span>OpenAI Codex<br><small>เขียนโค้ด แก้ไข และตรวจหลายไฟล์</small></span><b>CODE</b></p><p><i>04</i><span>ChatGPT HTML Demo<br><small>สร้าง Prototype ที่กดลองได้</small></span><b>PROTOTYPE</b></p><p><i>05</i><span>Claude AI Dashboard<br><small>สร้าง Dashboard Prototype</small></span><b>DASHBOARD</b></p></div><div class="panel-footer"><span>AI supports the process</span><b>Developer owns the result</b></div></aside></section>
 
     <section id="workflows" class="section dark"><div class="wrap"><p class="eyebrow">AI ช่วยอะไรบ้าง</p><h2>ใช้ AI เป็นผู้ช่วยในงานแต่ละประเภท</h2><p class="section-lede">แต่ละส่วนแสดง Tool ที่ใช้, งานที่ให้ช่วย, Context ที่ส่ง, Output ที่ได้ และสิ่งที่ Developer ตรวจเอง</p><div class="workflows"><article v-for="(item, index) in workflows" :key="item.tool" class="work-card"><div class="work-head"><span>{{ String(index + 1).padStart(2, '0') }}</span><div><p class="label">{{ item.tag }}</p><h3>{{ item.title }}</h3></div><b>{{ item.tool }}</b></div><dl><div><dt>งานที่ให้ AI ช่วย</dt><dd>{{ item.task }}</dd></div><div><dt>Prompt / Context ที่ส่ง</dt><dd>{{ item.context }}</dd></div><div><dt>AI Output</dt><dd>{{ item.output }}</dd></div><div><dt>สิ่งที่ Developer ตรวจเอง</dt><dd>{{ item.review }}</dd></div></dl></article></div></div></section>
 
@@ -71,10 +102,10 @@ const closeNav = () => { navOpen.value = false }
 + if (!asset) throw new NotFoundException();
 + return { data: asset.name };</pre></div></div></div><aside class="slide-outline"><p class="eyebrow">NOTEBOOKLM RESULT EXAMPLE</p><h3>ตัวอย่าง Slide Outline</h3><ol><li>Problem / Context</li><li>Approach และ Workflow</li><li>สิ่งที่พัฒนา หรือสิ่งที่ค้นพบ</li><li>Demo / Result</li><li>Next Step</li></ol><p class="todo">ตัวอย่าง Outline สำหรับตั้งต้นทำ Slide โดยตรวจและปรับเนื้อหาจริงก่อนนำเสนอ</p></aside></div></section>
 
-    <section id="demo" class="section"><div class="wrap"><p class="eyebrow">DEMO RESULT</p><h2>FreightLink AI — Shipping Rate Agent</h2><article class="demo-card main-demo"><div><p class="label">EXISTING INTERACTIVE HTML DEMO</p><h3>ตัวอย่างผลลัพธ์จากการทำ HTML Interactive Demo</h3><p>Demo จำลอง Flow ตั้งแต่ผู้ใช้ส่งคำขอทาง LINE → AI Orchestration → Browser Automation → ดึง Shipping Rate → ส่ง Result กลับ LINE</p><div class="flow"><span>LINE Request</span><i>→</i><span>AI Orchestration</span><i>→</i><span>Browser Automation</span><i>→</i><span>Structured Result</span></div><div class="card-actions"><button class="button primary" @click="demoOpen = true">ดู Demo ในหน้าเว็บ</button><a class="button" href="demos/freightlink_ai_shipping_rate_demo.html" target="_blank" rel="noopener">เปิด Demo เต็มหน้า ↗</a></div></div><aside class="demo-note"><b>Developer Review</b><p>ตรวจ User flow, ปรับข้อมูลจำลอง, ตรวจ Interaction และใช้ Demo เพื่อสื่อสารแนวคิดของระบบ</p></aside></article></div></section>
+    <section id="demo" class="section"><div class="wrap"><p class="eyebrow">DEMO RESULT</p><h2>OceanLine AI — Shipping Rate Agent</h2><article class="demo-card main-demo"><div><p class="label">EXISTING INTERACTIVE HTML DEMO</p><h3>ตัวอย่างผลลัพธ์จากการทำ HTML Interactive Demo</h3><p>Demo จำลอง Flow ตั้งแต่ผู้ใช้ส่งคำขอทาง LINE → AI Orchestration → Browser Automation → ดึง Shipping Rate → ส่ง Result กลับ LINE</p><div class="flow"><span>LINE Request</span><i>→</i><span>AI Orchestration</span><i>→</i><span>Browser Automation</span><i>→</i><span>Structured Result</span></div><div class="card-actions"><button class="button primary" @click="demoOpen = true">ดู Demo ในหน้าเว็บ</button><a class="button" href="demos/freightlink_ai_shipping_rate_demo.html" target="_blank" rel="noopener">เปิด Demo เต็มหน้า ↗</a></div></div><aside class="demo-note"><b>Developer Review</b><p>ตรวจ User flow, ปรับข้อมูลจำลอง, ตรวจ Interaction และใช้ Demo เพื่อสื่อสารแนวคิดของระบบ</p></aside></article></div></section>
 
     <section id="evidence" class="section dark"><div class="wrap"><p class="eyebrow">PAST AI-ASSISTED WORK</p><h2>สิ่งที่เคยทำจริง</h2><p class="section-lede">รายการด้านล่างเป็นงานที่เคยใช้ AI ช่วย โดยระบุ Tool ที่ใช้และบทบาทของ Developer ในการตรวจสอบหรือพัฒนาต่อ</p><div class="evidence"><article v-for="item in evidence" :key="item.title" class="evidence-card"><p class="label">AI TOOL · {{ item.tool }}</p><h3>{{ item.title }}</h3><p>{{ item.text }}</p></article></div></div></section>
   </main>
   <footer>AI-Assisted Development Portfolio · Backend / Full-stack Developer</footer>
-  <Teleport to="body"><div v-if="demoOpen" class="modal" role="dialog" aria-modal="true" aria-label="ตัวอย่าง FreightLink Demo"><div class="modal-content"><button class="close" aria-label="ปิดตัวอย่าง Demo" @click="demoOpen = false">×</button><h2>FreightLink AI — Shipping Rate Agent</h2><p>Existing Interactive HTML Demo ที่ใช้สื่อสาร AI-assisted workflow</p><iframe src="demos/freightlink_ai_shipping_rate_demo.html" title="FreightLink AI Shipping Rate Demo" /><div class="card-actions"><a class="button primary" href="demos/freightlink_ai_shipping_rate_demo.html" target="_blank" rel="noopener">เปิด Demo เต็มหน้า ↗</a></div></div></div></Teleport>
+  <Teleport to="body"><div v-if="demoOpen" class="modal" role="dialog" aria-modal="true" aria-label="ตัวอย่าง OceanLine Demo"><div class="modal-content"><button class="close" aria-label="ปิดตัวอย่าง Demo" @click="demoOpen = false">×</button><h2>OceanLine AI — Shipping Rate Agent</h2><p>Existing Interactive HTML Demo ที่ใช้สื่อสาร AI-assisted workflow</p><iframe src="demos/freightlink_ai_shipping_rate_demo.html" title="OceanLine AI Shipping Rate Demo" /><div class="card-actions"><a class="button primary" href="demos/freightlink_ai_shipping_rate_demo.html" target="_blank" rel="noopener">เปิด Demo เต็มหน้า ↗</a></div></div></div></Teleport>
 </template>
