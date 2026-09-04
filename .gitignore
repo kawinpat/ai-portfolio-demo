@@ -1,5 +1,7 @@
 node_modules
+127.0.0.1
 .nuxt
 .output
 dist
 .npm-cache
+output
