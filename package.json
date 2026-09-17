@@ -10,5 +10,8 @@
   },
   "dependencies": {
     "nuxt": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.3"
   }
 }

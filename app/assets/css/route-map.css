@@ -1,0 +1,220 @@
+.route-page {
+     min-height: 100vh;
+     background: radial-gradient(circle at 15% 10%, rgba(50, 211, 192, .14), transparent 30%), var(--bg)
+}
+
+.route-back {
+     color: #b8ccd8;
+     text-decoration: none;
+     font-size: 14px
+}
+
+.route-hero {
+     display: flex;
+     align-items: end;
+     justify-content: space-between;
+     gap: 25px;
+     padding: 64px 0 34px
+}
+
+.route-hero h1 {
+     margin-bottom: 12px
+}
+
+.route-status {
+     padding: 13px 16px;
+     border: 1px solid var(--line);
+     border-radius: 12px;
+     color: var(--cyan);
+     background: rgba(7, 28, 43, .8);
+     font: 12px Consolas, monospace
+}
+
+.route-grid {
+     display: grid;
+     grid-template-columns: 310px 1fr;
+     gap: 20px;
+     padding-bottom: 64px
+}
+
+.route-summary,
+.map-shell {
+     border: 1px solid var(--line);
+     border-radius: 16px;
+     background: linear-gradient(155deg, rgba(18, 48, 72, .92), rgba(8, 26, 42, .96));
+     overflow: hidden
+}
+
+.route-summary {
+     padding: 22px
+}
+
+.travel-options {
+     display: grid;
+     grid-template-columns: repeat(4, 1fr);
+     gap: 6px;
+     margin: 2px 0 13px
+}
+
+.travel-options button {
+     min-height: 58px;
+     padding: 6px 2px;
+     border: 1px solid transparent;
+     border-radius: 10px;
+     background: rgba(4, 21, 35, .55);
+     color: var(--muted);
+     cursor: pointer
+}
+
+.travel-options button:hover,
+.travel-options button.active {
+     border-color: rgba(50, 211, 192, .65);
+     background: rgba(50, 211, 192, .13);
+     color: #e9ffff
+}
+
+.travel-options button:disabled {
+     cursor: wait;
+     opacity: .6
+}
+
+.travel-options span,
+.travel-options small {
+     display: block
+}
+
+.travel-options span {
+     font-size: 19px;
+     line-height: 1.15
+}
+
+.travel-options small {
+     margin-top: 4px;
+     font-size: 10px
+}
+
+.route-summary>div {
+     padding: 15px 0;
+     border-bottom: 1px solid var(--line)
+}
+
+.route-summary span,
+.route-summary small {
+     display: block;
+     color: var(--muted);
+     font-size: 13px
+}
+
+.route-summary b {
+     display: block;
+     margin-top: 3px;
+     font-size: 27px
+}
+
+.route-summary>p {
+     line-height: 1.55;
+     color: #d9ebf4
+}
+
+.route-summary .button {
+     width: 100%;
+     margin-top: 10px
+}
+
+.maps-link {
+     display: block;
+     margin-top: 10px;
+     padding: 11px 8px;
+     border: 1px solid rgba(112, 166, 208, .55);
+     border-radius: 9px;
+     color: #dceefe;
+     text-align: center;
+     text-decoration: none;
+     font-size: 13px;
+     transition: .2s ease
+}
+
+.maps-link:hover {
+     border-color: var(--cyan);
+     background: rgba(50, 211, 192, .1);
+     color: #fff
+}
+
+.maps-link.disabled {
+     opacity: .45;
+     cursor: not-allowed
+}
+
+.map-shell {
+     position: relative;
+     min-height: 580px
+}
+
+.google-map {
+     width: 100%;
+     height: 580px
+}
+
+.map-state {
+     position: absolute;
+     inset: 0;
+     display: grid;
+     place-content: center;
+     gap: 8px;
+     padding: 24px;
+     text-align: center;
+     background: rgba(7, 21, 34, .88);
+     color: #d8edf5
+}
+
+.map-state span {
+     color: #ffb4a6
+}
+
+.map-retry {
+     justify-self: center;
+     margin-top: 8px;
+     padding: 9px 13px;
+     border: 1px solid rgba(50, 211, 192, .72);
+     border-radius: 8px;
+     background: rgba(50, 211, 192, .12);
+     color: #e9ffff;
+     cursor: pointer;
+     font: 600 13px inherit
+}
+
+.map-retry:hover {
+     background: rgba(50, 211, 192, .24)
+}
+
+.route-warning {
+     margin-top: -42px;
+     padding-bottom: 48px;
+     color: var(--muted);
+     font-size: 13px;
+     line-height: 1.65
+}
+
+@media(max-width:760px) {
+     .route-hero {
+          align-items: start;
+          flex-direction: column;
+          padding: 42px 0 25px
+     }
+
+     .route-grid {
+          grid-template-columns: 1fr;
+          padding-bottom: 30px
+     }
+
+     .route-warning {
+          margin-top: -14px;
+          padding-bottom: 28px
+     }
+
+     .map-shell,
+     .google-map {
+          min-height: 430px;
+          height: 430px
+     }
+}

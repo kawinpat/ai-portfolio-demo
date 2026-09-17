@@ -20,11 +20,9 @@ npm run dev
 npm run build
 ```
 
-## Static generation
+## Route to Company demo
 
-```bash
-npm run generate
-```
+`/route-to-company` uses Nuxt Server API and Google Routes API. Copy `.env.example` to `.env` for local development. Never commit real API keys.
 
 ## Purpose
 
