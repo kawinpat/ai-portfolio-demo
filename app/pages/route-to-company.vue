@@ -115,7 +115,7 @@ onMounted(refresh);
 <template>
   <main class="route-page">
     <header class="nav">
-      <NuxtLink class="brand" to="/">Kawinpat <small>AI-ASSISTED DEVELOPMENT PORTFOLIO</small></NuxtLink
+      <NuxtLink class="brand" to="/">Kawinpat <small>ROUTE TO COMPANY MAP</small></NuxtLink
       ><NuxtLink class="route-back" to="/">← กลับหน้า Portfolio</NuxtLink>
     </header>
     <section class="route-hero wrap">
